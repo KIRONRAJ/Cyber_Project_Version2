@@ -280,17 +280,10 @@ class CarECU:
     
     def reset(self):
         """
-        Reset the car ECU (like battery disconnect or system reboot).
+        FULL reset of the car ECU (everything wiped).
         
-        Logic:
-        - Clear the nonce list (forget all seen nonces)
-        - Reset counter to 0
-        - Reset statistics
-        
-        Why needed?
-        - Simulates power loss
-        - Tests vulnerability to reset attacks
-        - Allows running multiple experiments
+        Used between experiments to start completely fresh.
+        Not realistic — real ECUs preserve some state across reboots.
         """
         old_nonces = len(self.nonce_list)
         old_counter = self.last_counter
@@ -300,9 +293,33 @@ class CarECU:
         self.accepted_count = 0
         self.rejected_count = 0
         
-        print(f"🔄 Car ECU reset:")
+        print(f"🔄 Car ECU FULL reset:")
         print(f"   Nonces cleared: {old_nonces}")
         print(f"   Counter: {old_counter} → 0")
+    
+    
+    def volatile_reset(self):
+        """
+        VOLATILE reset — simulates power loss in a realistic ECU.
+        
+        Real-world model:
+        - nonce_list lives in RAM (volatile)        → CLEARED on power loss
+        - last_counter lives in EEPROM (non-volatile) → PRESERVED across reboot
+        
+        Why does this distinction matter?
+        - Storing a 4-byte counter in EEPROM is cheap and standard practice
+        - Storing thousands of nonces in EEPROM is expensive and rarely done
+        - So most real ECUs lose nonces on power loss but keep their counter
+        
+        This is THE scenario where Nonce-Only fails but Counter-Only and Hybrid survive.
+        """
+        old_nonces = len(self.nonce_list)
+        self.nonce_list.clear()
+        # NOTE: last_counter is NOT cleared (simulates EEPROM persistence)
+        
+        print(f"⚡ Car ECU volatile reset (power loss simulation):")
+        print(f"   Nonces cleared: {old_nonces} (was in RAM)")
+        print(f"   Counter preserved: {self.last_counter} (was in EEPROM)")
         print()
     
     

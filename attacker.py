@@ -74,6 +74,34 @@ class Attacker:
         return msg
     
     
+    def silent_capture(self, msg: Message) -> None:
+        """
+        Capture a message WITHOUT passing it to the receiver.
+        Simulates JAMMING the message in transit.
+        
+        Use case: desync scenario
+        - The legitimate sender sends a message
+        - The attacker jams it (it never reaches the car)
+        - The attacker now has the message but the car doesn't know about it
+        - This creates a "gap" between sender's and receiver's view of the world
+        - Later, the attacker can replay this jammed message
+        
+        Why this matters:
+        - The car's nonce_list never recorded this nonce (Nonce-Only is blind to it)
+        - The car's counter never incremented for this message
+        - When the next legitimate message arrives, the counter "skips over" the gap
+        - Now the attacker's captured message has a counter LOWER than the car's current state
+        - Replaying it: Counter-Only catches it (counter too low), Nonce-Only doesn't
+        
+        Parameters:
+            msg (Message): The message to silently capture
+        Returns:
+            None — message is "swallowed", not delivered
+        """
+        self.captured_messages.append(msg)
+        print(f"🎭 Attacker JAMMED & captured (not delivered to car): {msg}")
+    
+    
     # ==================== ATTACK TYPE 1: DELAYED REPLAY ====================
     
     def delayed_replay(self, delay_index: int = 0) -> List[Message]:
