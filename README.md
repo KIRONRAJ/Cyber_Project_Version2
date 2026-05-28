@@ -79,14 +79,25 @@ Each option saves results to a CSV file in the current directory.
 
 ## Configuration
 
-Parameters are defined at the top of `main_final.py`:
-
-```python
-NUM_NORMAL_MESSAGES = 10      # Legitimate messages per experiment
-NUM_TRIALS = 30               # Repetitions per cell (for averaging)
-MULTIPLE_REPLAY_COUNT = 5     # Replays in the multiple-replay attack
-RANDOM_SEED = 42              # For reproducibility
-```
+The four decision flows
+                    
+   No Validation       Nonce-Only         Counter-Only         Hybrid
+   ─────────────       ──────────         ────────────         ──────
+   
+   Message in          Message in         Message in           Message in
+       │                   │                   │                   │
+       ▼                   ▼                   ▼                   ▼
+    ACCEPT          Nonce seen?         Counter > last?     Nonce seen?
+                    /        \           /         \         /         \
+                  Yes        No        No         Yes      Yes          No
+                   │          │         │           │       │            │
+                   ▼          ▼         ▼           ▼       ▼            ▼
+                REJECT     ACCEPT   REJECT      ACCEPT  REJECT     Counter > last?
+                                                                    /         \
+                                                                   No         Yes
+                                                                   │           │
+                                                                   ▼           ▼
+                                                                REJECT      ACCEPT
 
 ## The Four Validation Methods
 
