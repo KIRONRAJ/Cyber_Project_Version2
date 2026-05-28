@@ -44,6 +44,39 @@ This launches an interactive menu with four experiment options:
 
 Each option saves results to a CSV file in the current directory.
 
+## How the 5 Files Connect
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│                              main.py                               │
+│                       (Interactive menu)                           │
+│                                                                    │
+│  [1] Full Grid   [2] Reset   [3] Desync   [4] Single Method        │
+│                                                                    │
+│  For each chosen experiment:                                       │
+│    - Create fresh objects                                          │
+│    - Run normal traffic                                            │
+│    - Run scenario-specific events                                  │
+│    - Measure metrics                                               │
+│  Then: print tables + export CSV                                   │
+└─────────────────────────┬──────────────────────────────────────────┘
+                          │ creates instances of:
+        ┌─────────────────┼──────────────────┐
+        ▼                 ▼                  ▼
+   ┌─────────┐       ┌──────────┐       ┌──────────┐
+   │ KeyFob  │       │  CarECU  │       │ Attacker │
+   │ (sender)│       │(receiver)│       │          │
+   └─────────┘       └──────────┘       └──────────┘
+        │                  ▲                  │
+        │ produces         │ validates        │ intercepts
+        └────────► passes ─┴── through ◄──────┘
+                      ┌─────────┐
+                      │ Message │  (data being passed)
+                      └─────────┘
+```
+
+---
+
 ## Configuration
 
 Parameters are defined at the top of `main_final.py`:

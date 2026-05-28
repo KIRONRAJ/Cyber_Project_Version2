@@ -1,0 +1,8 @@
+method_id,method_name,scenario,legitimate_total,legitimate_accepted,legitimate_rejected,attacks_total,attacks_accepted,attacks_rejected,detection_rate,asr,avg_latency_us,std_latency_us,num_trials
+4,Hybrid,no_attack,10,10.0,0.0,0,0.0,0.0,,,0.3396666215849109,0.15557415554063142,30
+4,Hybrid,delayed_replay,10,10.0,0.0,1,0.0,1.0,100.0,0.0,0.33696968316552084,0.1447067667097554,30
+4,Hybrid,multiple_replay,10,10.0,0.0,5,0.0,5.0,100.0,0.0,0.32822220317838297,0.16520913779822607,30
+4,Hybrid,out_of_order,10,10.0,0.0,10,0.0,10.0,100.0,0.0,0.2788332888788621,0.01674785508519747,30
+4,Hybrid,counter_skip,10,10.0,0.0,1,0.0,1.0,100.0,0.0,0.4215150869585517,0.6519387357326636,30
+4,Hybrid,reset_attack,10,10.0,0.0,10,0.0,10.0,100.0,0.0,0.2818332965640972,0.014825602760922525,30
+4,Hybrid,desync_attack,9,9.0,0.0,1,0.0,1.0,100.0,0.0,0.4369999442133121,0.4812137228738903,30
