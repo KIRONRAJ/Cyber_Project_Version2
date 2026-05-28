@@ -190,10 +190,7 @@ Validation overhead is small in all methods. Hybrid is the slowest because
 it performs two checks instead of one, but the difference is below one
 microsecond on typical hardware.
 
-## Reproducibility
 
-Results are deterministic when `RANDOM_SEED` is set (default 42). Set
-`RANDOM_SEED = None` in `main_final.py` to use a different sequence each run.
 
 ## Limitations
 
