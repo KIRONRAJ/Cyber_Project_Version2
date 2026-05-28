@@ -79,6 +79,9 @@ Each option saves results to a CSV file in the current directory.
 
 ## Configuration
 
+---
+
+```
                     The four decision flows
 
    No Validation       Nonce-Only         Counter-Only         Hybrid
