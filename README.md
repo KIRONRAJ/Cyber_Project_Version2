@@ -120,8 +120,7 @@ RANDOM_SEED = 42              # For reproducibility
 
 - Each experiment cell is **isolated**: fresh KeyFob, CarECU, and Attacker for every run.
 - Each cell is repeated `NUM_TRIALS` times (default 30) and averaged.
-- Per supervisor guidance, each (method, scenario) combination is recorded
-  separately so individual cells can be compared rather than aggregated.
+
 
 ## Metrics
 
