@@ -13,6 +13,10 @@ in smart car IoT systems. The simulation models communication between a key fob
 (sender) and a vehicle ECU (receiver), with an attacker positioned to intercept
 and replay messages.
 
+
+
+
+
 ## Files
 
 | File | Description |
@@ -116,6 +120,25 @@ Each option saves results to a CSV file in the current directory.
 | 4 | Hybrid | Requires both nonce uniqueness AND counter increment. |
 
 ## The Scenarios
+
+
+## How the simulation is built
+
+The code models three "characters" talking over a wireless channel:
+
+```
+   KEY FOB  ──sends message──►  ATTACKER  ──forwards──►  CAR ECU
+  (sender)                    (captures &              (receiver,
+                               replays)                 validates)
+```
+
+- **Key Fob** generates messages (UNLOCK / LOCK / START), each carrying a command, a random nonce, and a counter.
+- **Attacker** sits on the channel. It copies every message, lets it through, and later replays the copies to try to fool the car.
+- **Car ECU** receives messages and decides ACCEPT or REJECT using whichever security method is being tested.
+
+Everything runs as plain Python objects in one program, so we get exact control over message order, attack timing, and precise timing measurements.
+
+---
 
 ### Standard Scenarios
 
