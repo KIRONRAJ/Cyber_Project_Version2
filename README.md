@@ -1,9 +1,10 @@
-# Replay Attack Prevention Simulation
+# Replay Attack Prevention in Smart Car IoT — Hybrid Nonce-Counter Framework
 
-A Python-based simulation comparing four validation methods for replay attack
-prevention in smart car IoT systems. Implements and evaluates a hybrid
-nonce-counter framework against nonce-only, counter-only, and no-validation
-baselines under multiple attack scenarios.
+A Python simulation that tests how well different lightweight security methods stop **replay attacks** on a car's wireless key fob system. It compares four validation methods against seven attack scenarios and measures which one offers the best security with the least performance cost.
+
+**Project — IT9115, Whitecliffe NZ**
+
+---
 
 ## Project Context
 
