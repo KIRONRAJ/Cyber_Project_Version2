@@ -80,14 +80,31 @@ Each option saves results to a CSV file in the current directory.
 
 ## Configuration
 
-Parameters are defined at the top of `main_final.py`:
+---
 
-```python
-NUM_NORMAL_MESSAGES = 10      # Legitimate messages per experiment
-NUM_TRIALS = 30               # Repetitions per cell (for averaging)
-MULTIPLE_REPLAY_COUNT = 5     # Replays in the multiple-replay attack
-RANDOM_SEED = 42              # For reproducibility
 ```
+                    The four decision flows
+
+   No Validation       Nonce-Only         Counter-Only         Hybrid
+   ─────────────       ──────────         ────────────         ──────
+
+   Message in          Message in         Message in           Message in
+       │                   │                   │                   │
+       ▼                   ▼                   ▼                   ▼
+    ACCEPT          Nonce seen?         Counter > last?     Nonce seen?
+                    /        \           /         \         /         \
+                  Yes        No        No         Yes      Yes          No
+                   │          │         │           │       │            │
+                   ▼          ▼         ▼           ▼       ▼            ▼
+                REJECT     ACCEPT   REJECT      ACCEPT  REJECT     Counter > last?
+                                                                    /         \
+                                                                   No         Yes
+                                                                   │           │
+                                                                   ▼           ▼
+                                                                REJECT      ACCEPT
+```
+
+---
 
 ## The Four Validation Methods
 
@@ -121,8 +138,7 @@ RANDOM_SEED = 42              # For reproducibility
 
 - Each experiment cell is **isolated**: fresh KeyFob, CarECU, and Attacker for every run.
 - Each cell is repeated `NUM_TRIALS` times (default 30) and averaged.
-- Per supervisor guidance, each (method, scenario) combination is recorded
-  separately so individual cells can be compared rather than aggregated.
+
 
 ## Metrics
 
@@ -192,10 +208,7 @@ Validation overhead is small in all methods. Hybrid is the slowest because
 it performs two checks instead of one, but the difference is below one
 microsecond on typical hardware.
 
-## Reproducibility
 
-Results are deterministic when `RANDOM_SEED` is set (default 42). Set
-`RANDOM_SEED = None` in `main_final.py` to use a different sequence each run.
 
 ## Limitations
 
