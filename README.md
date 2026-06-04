@@ -163,34 +163,20 @@ Everything runs as plain Python objects in one program, so we get exact control 
 - Each cell is repeated `NUM_TRIALS` times (default 30) and averaged.
 
 
-## Metrics
+---
 
-Three metrics are computed per experiment cell:
+## How performance is measured
 
-| Metric | Definition | Direction |
-|--------|------------|-----------|
-| Detection Rate | Percentage of attack messages rejected | Higher is better |
-| Attack Success Rate (ASR) | Percentage of attack messages accepted | Lower is better |
-| Average Latency | Mean processing time per message (microseconds) | Lower is better |
+Three metrics:
 
-For scenarios with no attack messages (`no_attack`), detection rate and ASR
-are reported as N/A; only latency is meaningful.
+- **Detection Rate (DR)** = % of attacks caught. *Higher is better.*
+  `DR = (attacks rejected / total attacks) × 100`
+- **Attack Success Rate (ASR)** = % of attacks that got through. *Lower is better.*
+  `ASR = 100 − DR`
+- **Latency** = time to validate one message, in microseconds (millionths of a second). *Lower is better.* Measured with Python's high-resolution `time.perf_counter()`.
 
-## Output Files
+---
 
-Each experiment mode produces a CSV file with one row per (method, scenario)
-combination:
-
-- `results_full_grid.csv` — Full grid experiment
-- `results_reset_scenario.csv` — Reset scenario
-- `results_desync_scenario.csv` — Desync scenario
-- `results_<method_name>.csv` — Single method mode
-
-CSV columns include all metrics plus raw counts (legitimate messages accepted
-or rejected, attack messages accepted or rejected, standard deviation of
-latency across trials, and the number of trials).
-
-## Expected Results
 
 ### Standard Scenarios
 
@@ -231,6 +217,67 @@ Validation overhead is small in all methods. Hybrid is the slowest because
 it performs two checks instead of one, but the difference is below one
 microsecond on typical hardware.
 
+## Results — and the verdict
+
+Below is real output from running the simulation (4 methods × 7 scenarios, 30 trials each, seed 42). Latency is in microseconds (µs); exact values depend on the machine, but the **pattern** is what matters.
+
+### Attack Success Rate — the key table (lower = better; 0% means every attack was stopped)
+
+| Method | delayed | multiple | out_of_order | counter_skip | **reset** | **desync** |
+|--------|:-------:|:--------:|:------------:|:------------:|:---------:|:----------:|
+| No Validation | 100% | 100% | 100% | 100% | 100% | 100% |
+| **Nonce-Only** | 0% | 0% | 0% | 0% | **100% ❌** | **100% ❌** |
+| Counter-Only | 0% | 0% | 0% | 0% | 0% ✅ | 0% ✅ |
+| **Hybrid** | 0% | 0% | 0% | 0% | **0% ✅** | **0% ✅** |
+
+### What this shows
+
+On the **five standard attacks**, all three protected methods score a perfect 0% ASR — they look identical. The story only appears in the **last two columns**:
+
+- **Nonce-Only FAILS** both the reset and desync scenarios. After a power loss its memory is wiped, and a jammed message was never recorded — so in both cases old messages look new and get accepted. **100% of those attacks succeed.**
+- **Counter-Only and Hybrid HOLD.** The counter survives power loss (it lives in EEPROM) and always moves forward, so replayed old messages are rejected every time.
+
+### Latency cost (average µs per message; lower = better)
+
+| Method | Typical latency | Overhead vs baseline |
+|--------|:---------------:|:--------------------:|
+| No Validation | ~0.19 µs | — (baseline) |
+| Counter-Only | ~0.26 µs | ~0.07 µs |
+| Nonce-Only | ~0.32 µs | ~0.13 µs |
+| Hybrid | ~0.37 µs | ~0.18 µs |
+
+The Hybrid is the slowest, but the difference is about **0.18 millionths of a second** per message. For comparison, a car door physically unlocking takes about 100 milliseconds — roughly **half a million times slower**. The security cost is invisible in practice.
+
+### The verdict
+
+**The Hybrid method is the recommended choice.**
+
+1. **It is never worse** than the best individual method in any scenario tested.
+2. **It survives the realistic failure modes** (reset and desync) that defeat Nonce-Only.
+3. **It is defence-in-depth.** An attacker has to beat *two* independent checks. Attacks that target the counter (such as rollback attacks in the literature) are still caught by the nonce check, and attacks that target the nonce memory are still caught by the counter.
+4. **The extra cost is negligible** — well under a microsecond per message.
+
+Counter-Only ties with Hybrid in these specific tests, because no tested scenario defeats the counter. But Counter-Only is one new attack (e.g. a counter-rollback exploit) or one implementation bug away from failure, whereas the Hybrid keeps a backup check at almost no cost. **For a real safety-critical system, the Hybrid's redundancy is worth its tiny overhead.**
+
+---
+
+## Generating the result graphs
+
+After running the experiments and producing the CSV files, generate the four report figures:
+
+```bash
+pip install matplotlib numpy    # one-time setup
+python Plot_graph.py
+```
+
+This reads the CSV files in the current directory and outputs:
+
+| Output file | What it shows |
+|-------------|---------------|
+| `fig1_asr_all.png` | Attack Success Rate across all 6 scenarios (standard + robustness) |
+| `fig2_asr_robustness.png` | ASR under reset and desync only (the key finding) |
+| `fig3_capability_DR.png` | Security capability summary (scenarios defended at 100% Detection Rate) |
+| `fig4_latency.png` | Mean validation latency per method with baseline overhead |
 
 
 ## Limitations
@@ -247,14 +294,17 @@ microsecond on typical hardware.
   meaningful, but absolute values are not representative of microcontroller
   performance.
 
-## File Structure
+## Project structure
 
 ```
 .
-├── README.md
-├── message_final.py
-├── sender_final.py
-├── receiver_final.py
-├── attacker_final.py
-└── main_final.py
+├── message_final.py      # Message structure
+├── sender_final.py       # Key fob (sender)
+├── receiver_final.py     # Car ECU (receiver) + 4 validation methods
+├── attacker_final.py     # Attacker + replay strategies
+├── main_final.py         # Experiment runner + menu + CSV export
+├── Plot_graph.py         # Graph generator (reads CSVs, writes PNGs)
+└── README.md             # This file
 ```
+
+---
