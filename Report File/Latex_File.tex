@@ -1,0 +1,1887 @@
+\documentclass[a4paper,man,12pt]{article}
+
+% Line spacing
+\usepackage{setspace}
+
+\usepackage[margin=1in]{geometry} % Adjust margins if needed
+
+% Section formatting
+\usepackage{titlesec}
+
+% Dummy text, remove if not needed
+\usepackage{lipsum}
+
+% Graphics and figures
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+\usepackage[rightcaption]{sidecap}
+\usepackage{subfig}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{svg}
+
+
+%for Appendix
+
+\usepackage{listings}
+\usepackage{xcolor}
+ 
+% A clean, readable Python style for code listings
+\definecolor{codegreen}{rgb}{0.0,0.5,0.0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0.0,0.82}
+\definecolor{codeblue}{rgb}{0.1,0.1,0.7}
+\definecolor{backcolour}{rgb}{0.97,0.97,0.97}
+ 
+\lstdefinestyle{pythonstyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen}\itshape,
+    keywordstyle=\color{codeblue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=6pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4,
+    frame=single,
+    rulecolor=\color{black!30}
+}
+\lstset{style=pythonstyle}
+% ===========================================================================
+
+
+% PDF includes
+\usepackage{pdfpages}
+
+
+
+% APA 7th edition style citations
+\usepackage[style=apa,backend=biber]{biblatex}
+\addbibresource{KIRON.bib} % Your bib file
+
+% Title formatting
+\usepackage{titlesec}
+\titleformat{\section}{\bfseries\large}{\thesection}{1em}{}
+\titleformat{\subsection}{\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\itshape}{\thesubsubsection}{1em}{}
+
+
+
+
+
+% Begin the document
+\begin{document}
+
+% --------------- Title Page Section ---------------
+% This section is for generating the title page of the research proposal.
+% We are using the 'titlepage' environment for this.
+
+\begin{titlepage}
+    \begin{center} % All elements will be centered horizontally on the title page
+        
+        % Insert vertical space to move the title block downwards
+        \vspace*{2cm}
+        
+        % Displaying the document title in large, bold font
+        \textbf{\LARGE IT9115 - Project}
+        
+        % Insert more vertical space for aesthetic purposes
+        \vspace{1.5cm}
+        
+        % Displaying the specific title of the research in large font
+        \textbf{\Large Replay Attack Prevention in Smart Car IoT Systems:
+          A Lightweight Hybrid Nonce-Counter Framework}
+        
+        % Additional vertical space for better layout
+        \vspace{2cm}
+        
+        % Displaying the student's ID and name
+        \textbf{20241136, KIRONRAJ ODATT PERINGODE}
+
+        \vspace{3cm}
+
+        \textbf{Supervisor : Dr.Muhammad Azam }
+        
+        % Fill in remaining vertical space until the next text element
+        \vfill
+        
+        % Displaying the academic programme that the student is enrolled in
+        \textbf{Master In Information Technology}
+        
+        % Another vertical fill to distribute space until the next element
+        \vfill
+        
+        % Displaying the institution details: School, University, and Country
+        \textbf{School of Information Technology}\\
+        \textbf{Whitecliffe}\\
+        \textbf{New Zealand}
+        
+        % Insert a bit of vertical space for layout
+        \vspace{1cm}
+        
+        % Displaying the current date using LaTeX's \today command
+        \textbf{\today}
+        
+    \end{center} % End centering of elements on the title page
+\end{titlepage} % End of title page environment
+
+% --------------- End of Title Page Section ---------------
+
+
+\pagenumbering{roman}
+
+% The following LaTeX code is for generating an Abstract page in your document.
+
+% Create a new page
+\newpage
+
+% Center the content on the page
+\begin{center}
+    % Add vertical space of 2cm from the top of the page
+    \vspace*{2cm}
+    
+    % Display the title "Abstract" in bold and large font
+    \textbf{\Large Abstract}
+\end{center}
+
+% Following the title, you should add the content of your abstract.
+
+
+The fast adoption of Internet of Things (IoT) technologies has raised new security problems, like replay attacks. A replay attack occurs when an attacker intercepts and replays an authentic message in order to gain access to another system. The challenge with these types of attacks is that they use valid messages and making detection difficult using the conventional methods.\bigbreak
+
+The goal of this project is to analyze replay attacks in smart car systems and provide a lightweight solution for mitigating from them. Current options for mitigating replay attacks rely on either nonce or counter approaches, which have disadvantages when used alone. Nonce based techniques ensure that a message is valid while using additional memory to record the nonces. Counter based techniques, maintain message sequencing even experiencing synchronization issues.\bigbreak
+
+To overcome this issue, this study suggests a hybrid nonce and counter system that combines both of these approaches. This project utilizes a simulated environment that simulates connected smart automobile systems, test replay attack scenarios and evaluate the efficiency of different defense methods. Performance comparisons will be undertaken between nonce, counter and hybrid techniques, with parameters such as replay detection rate, latency and Attack Success Rate.\bigbreak
+
+The primary objective of the project is to demonstrate that the hybrid framework is more stable and dependable against replay attacks while consuming fewer resources. This project project will help to build feasible and successful security solutions for IoT smart cars.
+
+
+
+% This section of the LaTeX code is for generating the Table of Contents,
+% List of Figures, and List of Tables.
+
+% Create a new page for the Table of Contents
+\newpage
+% Generate the Table of Contents
+\tableofcontents
+% Create another new page after the Table of Contents
+\newpage
+
+% Generate the List of Figures
+\listoffigures
+% Add the List of Figures to the Table of Contents
+\addcontentsline{toc}{section}{List of Figures}
+% Create a new page after the List of Figures
+\newpage
+
+% Generate the List of Tables
+\listoftables
+% Add the List of Tables to the Table of Contents
+\addcontentsline{toc}{section}{List of Tables}
+% Create a new page after the List of Tables
+\newpage
+
+% The main content will start here
+
+% Set the page numbering style to Arabic numerals for the main content
+\pagenumbering{arabic}
+% Reset the page counter to start from 1
+\setcounter{page}{1} % Reset page counter to 1
+
+
+% This section starts the "Introduction" part of the document.
+% Use \section to denote a major section in your document.
+
+% Introduction Section
+\section{Introduction}
+
+Smart homes, industry operations, and intelligent transportation systems are all becoming more important as the Internet of Things (IoT) expands \parencite{new1}. Smart car systems, in particular, utilize significant reliance on wireless communications to achieve features such as Remote Keyless Entry (RKE), Remote Engine Starting and Vehicle Access Control. While these services considerably improve user comfort and automate operations, they also introduce serious security risks due to the open and limited resources of the IoT communication environment. \bigbreak
+
+One of the most serious risks to smart car systems is the replay attack. An attacker can intercept an authentic communication signal and retransmit it again to gain access to a targeted system. Although captured messages are generally highly encrypted and legitimate, a system may mistakenly think that a replayed message is real, making it difficult to detect as authentic. The replay attack is effective against IoT devices, because of the lack of secure freshness verification and the need for lightweight protocols. Researches has repeatedly revealed that a large percentage of IoT devices are still vulnerable to replay attacks, emphasizing the severity of the issue.\parencite{001}. \bigbreak
+
+Replay attacks are no longer limited to reusing signals in smart automobiles. Attacks such as RollJam and RollBack demonstrate that even today's powerful rolling-code-based RKE systems are vulnerable to replay Attacks and resynchronization techniques. An example of this is the RollBack attack \parencite{001B}. This attack allows an attacker to reuse previously acquired signals without having to intercept them a second time. This exposes an issue in existing replay security. As a result, the security of present solutions cannot be relied on to provide long term defense against replay assaults in a practical scenarios.\bigbreak
+
+To mitigate replay attacks the lightweight authentication techniques like\textbf{ nonce-based and counter-based }are commonly utilized. They are intended to keep messages fresh by preventing previously transmitted messages being resent. Each of these techniques has its own disadvantages. Nonce-based systems may result in high communication expense, whereas counter-based systems have synchronization issues and can trigger state rollback attacks \parencite{new2}. Recent studies has also shown that timestamp spoofing and desynchronisation can compromise different types of authentication in practical IoT systems\parencite{001C}. \bigbreak
+
+While there has been a lot of research into these mechanisms, the majority of these studies analyze them either separately or under ideal conditions. Comprehensive comparison analysis for smart car environments is constrained due to a number of issues like latency, processing limitations and unreliable connectivity. Additionally, relatively little study has been conducted on the usage of hybrid systems that integrate multiple freshness validation techniques to make up for limitations in individual validation methods.\bigbreak
+
+As a result, this study will investigate the vulnerability of replay attacks in IoT environments for smart vehicles and propose a lightweight hybrid framework that combines nonce-based and counter-based validation techniques. This study will contribute to a improved understanding of how to achieve an appropriate balance between security and performance by examining both the individual and combined evaluation methodologies for a smart vehicle communication environment.
+
+
+
+  % Subsection within the Introduction: Problem Statement
+  
+  % Use \subsection to denote a subsection within a major section.
+\subsection{Problem Statement}
+
+Replay attacks create a major threat to the security of IoT systems in smart cars. These attacks primarily risk the security of keyless wireless communication since an attacker can intercept legitimate authentication messages and retransmit them, enabling unauthorized access. At present, a significant reason for this vulnerability is a lack of strong message freshness verification mechanisms in the smart car IoT system, which provides a means of preventing replay attacks.\bigbreak
+
+There are lightweight protection to Replay attacks, such as nonce-based and counter-based schemes, however these are normally tested separately and under controlled conditions. They do not accurately represent the complexity of real-world environments.\bigbreak
+
+Modern attack methods demonstrate that more sophisticated safety measures such as rolling codes, can be bypassed using replay-based resynchronization techniques. As a result, there is significant uncertainty about the efficacy of existing solutions when put into reality. This suggests that lightweight Replay protection techniques should be properly evaluated, as well as hybrid solutions developed to effectively overcome limitations.
+
+\subsection{project Aims and Objectives}
+
+\subsubsection{Aim}
+
+To design and evaluate a lightweight hybrid nonce-counter framework for replay attack prevention in smart car IoT systems.
+
+
+\subsubsection{Objectives}
+
+\begin{itemize}
+  \item To analyse replay attack behaviour in smart car systems.
+    \item To implement a simulation environment representing smart car IoT communication with nonce based and counter based replay protection mechanisms.
+     \item To design a hybrid nonce counter framework that addresses the individual limitations of nonce-based and counter based approaches.
+          \item To evaluate the security effectiveness of nonce based, counter based and hybrid approaches against replay attacks through performance metrics including detection rate, attack success rate, and latency overhead.
+          \end{itemize}
+
+\subsection{Research Questions}
+
+\begin{itemize}
+  \item How do replay attacks impact smart car IoT communication systems?
+  \item What are the individual limitations of nonce-based and counter-based replay protection mechanisms when applied in a simulated smart car IoT environment?
+  \item How does a hybrid nonce-counter framework improve replay attack resistance compared to nonce-based and counter-based approaches used individually?
+  \item What are the performance trade-offs, in terms of detection rate and attack success rate and latency overhead between other approaches?
+  
+\end{itemize}
+
+\subsection{Research Hypotheses}
+\label{sec:hypotheses-ref}
+Based on the analysis of nonce based and counter based authentication mechanisms, this study formulates the following hypotheses:
+
+\begin{itemize}
+    \item \textbf{Detection Capability:} This Hybrid method will achieve a higher Detection Rate than either Nonce only or Counter only methods when tested against different replay attack types.
+    
+    \item \textbf{Attack Resistance:} Attack Success Rate will be the lowest for the Hybrid method across all types of attack compared to the No Protection baseline (100\% ASR).
+    
+    \item \textbf{Performance Trade offs:} Latency Overhead will increase 
+    in the order Counter only $<$ Nonce only $<$ Hybrid, showing that the computational cost of additional validation checks.
+    
+    \item \textbf{Attack Type Vulnerability:} Nonce only methods will fail against a counter-skip attack where a fresh nonce is paired with a manipulated counter, while Counter only methods will fail under desynchronisation scenarios. The Hybrid method will handle both attack types effectively.
+
+\end{itemize}
+
+\subsection{Research Scope}
+
+This project focuses on replay attacks in smart car IoT systems, especially keyless communication.
+This project includes
+\begin{itemize}
+  \item Simulation of communication
+  \item Replay attack implementation
+  \item Evaluation of nonce and counter based techniques
+  \item Design and testing of a hybrid framework
+\end{itemize}
+  
+
+
+\subsection{Expected Research Outcomes}
+This project aims to simulate impact of replay attacks on smart car IoT systems, Provide a comparative analysis of lightweight replay protection techniques. Also,validate the effectiveness of a hybrid Nonce-Counter framework and offer practical insights for designing a secure and an efficient IoT authentication mechanism.  The intended outcomes are:
+
+\begin{itemize}
+  \item A working Python based simulation environment of a wireless authentication between a key fob and a vehicle ECU.
+  \item A comparison of four validation configurations (no protection, nonce-only, counter-only and hybrid) against multiple replay attack scenarios.
+  \item A practical and defensible design recommendation for replay protection in a resource constrained smart car systems.
+\end{itemize}
+
+The expected quantitative outcomes for each method are shown in Table \ref{tab:expected_outcomes}.
+
+\begin{table}[H]
+\centering
+\caption{Expected Performance Outcomes Per Method}
+\label{tab:expected_outcomes}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Method} & \textbf{Detection Rate} & \textbf{Attack Success Rate} & \textbf{Latency} \\
+\hline
+No Protection   & 0\%       & 100\%     & 0 $\mu$s \\
+\hline
+Counter-Only    & High  & Low  & Low \\
+\hline
+Nonce-Only      & High & Low  & Medium \\
+\hline
+Hybrid          & Highest  & Lowest    & Moderate \\
+\hline
+\end{tabular}
+\end{table}
+
+These predicted values will be validated through the simulation experiments. This study will also deliver a working Python-based simulation environment and practical design for authentication in a resource constrained smart car IoT systems.
+
+\pagebreak
+
+% The "Literature Review" section starts here.
+
+\section{Literature Review}
+
+The sudden growth in interest in the Internet of Things has enhanced the ability to automate and connect devices in a variety of sectors, including smart homes, healthcare providers and transportation logistics. The rapid growth of IoT devices has also increased their exposure to security threats, particularly those targeting common network vulnerabilities and communication protocols. These threat can be classified as malicious, un intentional or a combination of both. The most dangerous assault on IoT devices comes from replay attacks, which exploit vulnerabilities in either the verification procedure used to establish the freshness of communications or the authentication process used to validate identity \parencite{002}.\bigbreak 
+
+IoT devices have limited capabilities due to limited processor, memory and power resources. Their typical applicability is within a very confined setting. Due to these constraints, IoT systems often rely on lightweight security mechanisms that may not provide strong protection against advanced attacks. Many existing protocols for authenticating IoT devices are designed to be lightweight and efficient and dont have a strong protection against replay attacks. As a result, attackers commonly exploit methods of communication and obtain access to an IoT system without breaching the encryption.
+  
+\subsection{Replay Attacks in IoT and Smart Car Systems}
+
+The replay attack takes place when an attacker intercepts and replays a valid communication, manipulating the system into assuming that the broadcast is authentic. It is one of the most serious types of attacks because there is no need to decrypt a communication and by simply replaying it can authenticate itself \parencite{002}.\bigbreak 
+
+Replay attacks can interrupt IoT networks or their operations by decreasing packet delivery percentages and increasing packet delivery times. Empirical studies have shown that replay attacks can reduce packet delivery ratios to less than 60\% and increase communication latency up to 50\%, significantly degrading the network performance\parencite[14]{002}. Research on routing protocols for IoT systems has shown that replaying control messages can have a major impact on network performance and cause instability.\bigbreak
+
+Smart car features, such as remote keyless entry are top targets for replay attacks because they rely on radio wave communication between the key fob and the car itself giving the attacker easy access to messages that can be captured and replayed later to open car doors or start engines \parencite{003}.\bigbreak
+
+In smart car systems, particularly Remote Keyless Entry (RKE) are highly vulnerable because they rely on wireless communication between the key fob and the vehicle. Hence making it easy for the attackers to capture and replay signals\parencite{002B}.
+
+\subsection{Attacks on Remote Keyless Entry Systems}
+
+Early Remote Keyless Entry (RKE) systems used static code, which left them in a vulnerable position when intercepted and a repeating signal may be exploited multiple times. Rolling code techniques were developed to address this issue by generating new code with each transmission. A new code is delivered each time a user transmits as determined by an updated counter.\bigbreak
+
+Some recent studies show that rolling code systems are still vulnerable to advanced replay based attacks due to weaknesses in the synchronization mechanisms and the protocol design \parencite{002B}.\bigbreak
+
+However, studies indicates that rolling code systems are not secure. Rolling code systems are vulnerable to advanced attacks since both the key fob and the car use insecure synchronization protocols. The RollBack attack is an example that can force a system to revert to a previous state, allowing the attacker to use a previously acquired signal, especially since the attack has no time component and consequently has a high degree of practicality \parencite{001B}.This demonstrates that even modern RKE systems cannot fully prevent replay attacks and require improved freshness validation mechanisms.\bigbreak
+
+Furthermore, modern Passive Keyless Entry (PKE) systems have drawbacks in their cryptographic architecture like bad protocol implementations, lack of mutual authentication and inadequate protocol designs. These vulnerabilities makes today's PKE systems vulnerable to replay and relay attacks \parencite{005}.
+
+\subsection{Lightweight Authentication Techniques for Replay Prevention}
+
+Due to resource constraints in Internet of Things (IoT) devices, a number of lightweight and simple techniques have been developed for preventing replay attacks with low computational power.\bigbreak 
+
+
+\textbf{Nonce} methods are well-known examples of lightweight authentication. Nonce methods use a randomly generated value that is unique to the session in which it was created, making sure the message is legitimate when it is first received by the receiver.\bigbreak
+
+
+\textbf{Counter} methods are another widely used method to deliver lightweight authentication. Counter methods rely on sequencing to determine whether a received message is a duplicate of one that has already been received.\bigbreak 
+
+\textbf{Timestamp} methods are another example of lightweight authentication. These methods provide a way for authenticating messages within a specified "window" of time after they are created. However, they depend heavily on clock synchronization across IoT devices.\bigbreak
+
+\textbf{Hybrid} methods are another explored technique by combining multiple mechanisms such as nonce, counter and timestamp to improve replay protection.For example, modern IoT protocols integrate counters with timestamp-based validation to overcome the limitations of individual approaches\parencite{005B}. \bigbreak
+
+Additional research started to investigate the use of \textbf{Session Key} approaches for lightweight authentication. Each communication session generates its own dynamic key also known as a session key. This significantly improves security because intercepted messages cannot be utilized in future communication sessions \parencite{006}.
+
+\subsection{Detection-Based Approaches}
+
+In addition to preventative strategies, some research focuses on detecting replay attacks using machine learning and signal analysis approaches. Recent studies used Software Defined Radio (SDR) and machine learning models to detect replay attacks in smart car systems with high accuracy, demonstrating detection rates above 90\% \parencite{006B}.
+
+For example, deep learning models have been used to precisely differentiate authentic and fraudulent signals in keyless automobile systems.\bigbreak
+
+Using a pre-trained neural network model, one such solution detected replayed signals with more than 99 \% accuracy \parencite{003}. While these solutions work, they are computationally intensive and may not be appropriate for low-power IoT devices.
+
+\subsection{Hardware-Based and Advanced Security-Based Approaches}
+  
+\textbf{ Physical Unclonable Functions (PUFs)} are a hardware-based solution to improving authentication security by creating unique identities for each device. In addition, PUFs give a high level of security, but they require additional hardware and increase the overall complexity of the system\parencite{007}. \bigbreak
+
+Another advanced solution is \textbf{Block Chain} based on an authentication scheme that authenticates the device communication using blockchain technology and a distributed ledger. This method boosts device trust and security, but it also introduces latency and computational overhead, making it unsuitable for real time IoT applications \parencite{008}.
+
+\subsection{Limitations in Existing Research}
+
+Despite the wide range of proposed solutions there are several limitations remain in current project:
+
+\begin{itemize}
+  \item Most approaches focus on a single technique instead of comparing multiple methods.
+  \item High-security solutions often ignores resource constraint.
+  \item Existing replay protection mechanisms fails under real world conditions such as desynchronization, delay attacks and rollback attacks.
+  \item There is a limited evaluation of the hybrid approaches that combine multiple freshness mechanism in IoT environments.
+\end{itemize}
+
+\subsection{Summarising and Research Gap}
+
+The Literature review finds a clear gap in the research studies. Present studies does not provide direct comparisons between lightweight replay attack prevention techniques, specifically nonce based replay attack prevention techniques versus counter based replay attack prevention techniques, to better understand how well they both work for smart car IoT systems.\bigbreak
+
+There has also been a lack of practical implementations and performance assessments of both methodologies in practical operating contexts. Existing researches has focused solely on the theoretical models or high level simulations of both methodologies and failing to include any of the real world constraints associated with their use like latency and synchronization concerns and limited available resources.\bigbreak 
+
+As a result, the objective of this project is to design and evaluate a hybrid nonce and counter framework and compare it with existing individual approaches to identify a more secure and efficient solution for smart car IoT systems.
+
+
+\pagebreak
+% This section discusses the Research Methodology.
+% Use \section to introduce a new major section in your document.
+\section{Research Methodology}
+\label{Methodology}
+
+ This study follows a simple experimental approach to analyse replay attacks and then evaluate lightweight prevention techniques in a smart car IoT system. This study follows a simulation based experimental approach to analyse replay attacks and evaluate lightweight prevention techniques in a smart car IoT system under controlled conditions. The entire system is simulated using a software based environment, which allows controlled testing without using real hardware.
+
+\subsection{Research Approach}
+
+The project is based on the simulation and comparison method. The project is based on simulation and comparative analysis of the multiple replay attack prevention techniques. A basic communication system is created in order to represent a smart car environment. The system is then tested under normal conditions, attack conditions and under protected conditions.
+
+
+
+\subsection{System Overview}
+
+The system includes three main components:
+
+\begin{itemize}
+  \item A Sender ( Key Fob)
+  \item A Receiver ( Car)
+  \item An Attacker ( Captures And Transfers Reply Signals)
+\end{itemize}
+
+
+\subsection{Proposed Hybrid Security Framework}
+The proposed framework of constructing a hybrid replay attack prevention system integrates nonce-based and counter-based authentication methods into a single system. This enables for the integration of the best aspects of each technique, resulting in a lightweight authentication mechanism suitable for implementation in IoT environments such as smart car systems.\bigbreak
+
+When using IoT communication methods, the freshness of the message (that it is transmitted in order and only once) and the sequencing of the messaging (that it is received correctly) are essential factors to consider. Using a nonce-based method makes sure each transmitted message is different from other transmitted messages. By using a counter-based method, it assures that all sent messages are received in the same order in which they were sent. However, when employed alone these has limitations. This study provides a solution on developing a hybrid system that combines both methodologies into a single system.\bigbreak
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/figure1_comparison_improved.png}
+    \caption{Comparison of replay attack prevention approaches showing that the 
+proposed Hybrid framework addresses the individual weaknesses of nonce-only 
+and counter-only methods.}
+    \label{fig:framework}
+\end{figure}
+
+The hybrid authentication system combines nonce and counter values to all messages sent from a transmitter to a receiver. When the receiver receives the message from the sender, it must make sure that the nonce and counter values are correct before proceeding with the action.\bigbreak
+
+Figure \ref{fig:validation_logic} shows the detailed working of the proposed hybrid framework, including message generation, replay attack scenario, and validation process.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/figure3_validation_logic_final.png}
+    \caption{Validation logic for each method showing decision flows and 
+pseudocode implementations.}
+    \label{fig:validation_logic}
+\end{figure}
+
+While Figure \ref{fig:framework} shows the overall system architecture, Figure \ref{fig:validation_logic} provides a detailed view of the validation logic within each method.The four columns provide a direct comparison of how each method processes incoming messages.\\ 
+
+\textbf{No Protection (Method 1)} serves as the baseline control case as it is accepting 
+all messages without performing any validation checks. This establishes a scenario where Attack Success Rate is 100\%.\\ 
+
+\textbf{Nonce-Only validation (Method 2)} checks whether the received nonce has been seen previously by searching the stored nonce list. If found then the message is immediately rejected as a replay attack but if the nonce is new then it is stored and the message is accepted. This method prevents delayed and multiple replay attacks but fails after device reset when the nonce 
+list is reset.\\ 
+
+\textbf{Counter-Only validation (Method 3)} checks the received counter against 
+the last accepted counter. Messages with counters less than or equal to the 
+last accepted value are rejected. Only messages with increasing counters are accepted. This method prevents delayed and multiple replay attacks but is vulnerable to desynchronisation issues where 
+valid messages may be incorrectly rejected if network packet loss causes counter gap.\\ 
+
+\textbf{Hybrid validation (Method 4)} implements a two step sequential check. 
+First, it validates nonce uniqueness and only if the nonce is new it does processing and then
+continue to the second check. Second, it validates counter freshness and only if 
+the counter is increasing and then the message accepted. This two checking approach make sure that replay attacks fail on if atleast one check fails and by this we can achieve comprehensive protection against all attack types while maintaining efficiency through early rejection.\\ 
+
+
+The pseudocode blocks in Figure \ref{fig:validation_logic} show the 
+implementation logic for each method.
+
+Each message generated by the sender consists of three components:
+
+\begin{itemize}
+  \item \textbf{Command} (e.g., UNLOCK, LOCK, START)
+  \item \textbf{Nonce (N)} -- a randomly generated value unique per message
+  \item \textbf{Counter (C)} -- an incrementing sequence number
+\end{itemize}
+
+\subsubsection{Sender-Side Process}
+
+The transmitter (key fob) sends data in a simple sequence. First, a random nonce value is generated to ensure that it is unique. Then counter value is increased to keep the sequence in order. These values are combined with the command to generate the final message.
+
+\subsubsection{Receiver-Side Validation}
+The validation module is used by the receiver (smart car system) to verify the incoming message. This module performs two levels of tests to verify freshness and sequence correctness.
+
+\subsubsection{Validation Module}
+
+Counter validation makes sure that messages receive in the correct order by saving the last successfully received counter value and comparing it to any freshly received counter values and Nonce validation makes sure messages are new to the system and have not been used earlier. Therefore, previously submitted nonce values are stored by the system for comparison with incoming nonce values. After both validations, an final decision is made. This dual validation improves reliability compared to using a single method.
+
+\subsection{Implementation}
+
+%The system is implemented using a Python based simulation environment. This allows us in testing of different scenarios without requiring any physical hardware.
+
+%The implementation includes the following components:
+%\begin{itemize}
+  %\item Sender module (message generation from key fob)
+  %\item Receiver module (Smart Car system)
+  %\item Attack module (replay simulation)
+  %\item Validation module
+%\end{itemize}
+
+\subsubsection{Simulation Scenario}
+
+This study uses a controlled software based simulation that simulates the wireless authentication between a key fob and a smart car's electronic control unit (ECU).The simulation focuses on testing replay protection techniques at the protocol level, rather than the physical or network layers. This project topic aims to compare the effectiveness of nonce-based, counter-based and hybrid validation logic, regardless of the transmission channel.This reflects the established Remote Keyless Entry (RKE) threat model which an attacker captures and replays a legitimate key fob signals to gain unauthorised vehicle access \parencite{001B, 002B}.\bigbreak
+
+The simulated environment consists of three logical entities:
+
+\begin{itemize}
+    \item \textbf{Key Fob (Sender):} Generates authenticated commands (UNLOCK,
+    LOCK, START) and transmits them to the car ECU. Each message contains a
+    command and a randomly generated nonce and an increasing counter.
+
+    \item \textbf{Car ECU (Receiver):} Receives incoming messages and validates
+    them using one of four configurations: No protection, nonce only,
+    counter only or the proposed hybrid framework.
+
+    \item \textbf{Attacker:} Captures all transmitted messages and attempts to
+    replay them using four different replay strategies (delayed replay, multiple
+    replay, out-of-order replay and counter-skip replay).
+
+\end{itemize}
+
+Communication between the entities is modelled as a message passing within a single Python program. This allows precise control over message ordering, attack timing and validation outcomes, as well as evaluating the actual processing latency caused by each security method.\\ 
+
+The simulation runs multiple separate sessions for analytical accuracy. Each session equates to a specific. interaction between the key fob and the car, such as unlocking and starting. During each session, the attacker intercepts legitimate messages and attempts to replay them against the ECU. The experiment is performed for all four validation conditions to obtain comparative results.\\ 
+
+\subsubsection{Simulation Parameters}
+
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Parameter} & \textbf{Value} \\
+\hline
+Simulation entities & 1 sender, 1 receiver, 1 attacker \\
+\hline
+Communication direction & Unidirectional (Key Fob $\rightarrow$ ECU) \\
+\hline
+Communication model & In-process message passing \\
+\hline
+Logical protocol & Single application-layer message format \\
+\hline
+Command set & UNLOCK, LOCK, START \\
+\hline
+Validation methods compared & None, Nonce, Counter, Hybrid \\
+\hline
+Attack types & Delayed, Multiple, Out-of-order, \\
+ & Counter-skip along with Reset, Desync Scenarios \\
+\hline
+Normal messages per trial & 10 \\
+\hline
+Nonce range & 100{,}000 -- 999{,}999 (random integer) \\
+\hline
+Counter range & Increasing from 1 \\
+\hline
+Trials per experiment & 30 \\
+\hline
+Latency measurement & \texttt{time.perf\_counter()}, $\mu$s precision \\
+\hline
+Implementation language & Python 3.x \\
+\hline
+\end{tabular}
+\caption{Simulation Parameters}
+\label{tab:simparams}
+\end{table}
+
+All simulation parameters are fixed and stated explicitly so that the experiment is fully reproducible. The values are summarised in Table \ref{tab:simparams}.
+ 
+
+\subsubsection{Experimental Design}
+
+The experiment follows a controlled design. The objective is to test each validation method on different attack type, so that any difference in outcome can be linked to the method rather than to a confounding factor.
+
+\paragraph{Design structure:}
+
+The experiment is a grid of (validation method $\times$ attack scenario), where each cell is one isolated experiment. The four validation methods are tested against each scenario independently. The comparison is further expanded by two robustness scenarios: reset and desync.
+
+\paragraph{Isolation:}
+
+Each test uses a fresh sender, receiver and attacker. The nonce list and counter are reset at the start of every test, making sure that the result in one test cannot influence another test.
+
+\paragraph{Procedure for each Test:}
+\begin{enumerate}
+    \item The sender transmits a set of legitimate messages. The attacker
+    captures a copy of each and forwards the original to the ECU, which
+    validates and accepts them. 
+
+    \item The attacker executes the replay strategy for that scenario (for
+    example, replaying a single captured message, or replaying all captured
+    messages in reverse order).
+    
+    \item The ECU validates each replayed message using the method under test.
+    Each outcome is recorded as accepted (attack succeeded) or rejected (attack
+    detected).
+
+    \item Processing latency is measured for every message, legitimate and
+    replayed, and stored.
+\end{enumerate}
+
+\paragraph{Repetition:}
+Each test is repeated 30 times. Tested detection rate, attack success rate and latency are calculated across these trials.
+
+\paragraph{Recording:}
+Results for every tests are written to a CSV file with one row per (method, scenario) pair, recording the method, scenario, counts of legitimate and attack messages accepted and rejected, detection rate, attack success rate, and the latency.
+
+
+\subsection{Assumptions}
+
+The following assumptions define the scope of the simulation and clarify what 
+is in and out of scope:
+
+\begin{itemize}
+    \item \textbf{Communication abstraction:} The simulation models 
+    message-level communication only. Physical-layer behaviour such as RF 
+    signal strength, jamming and propagation delay is out of scope.
+    \item \textbf{Attacker capability:} The attacker is assumed to have 
+    perfect message capture ability. This represents a worst case scenario and 
+    isolates the strength of the validation mechanism from the difficulty of 
+    interception.
+    \item \textbf{Memory availability:} The car ECU is assumed to have 
+    sufficient memory to store nonce values for the duration of a session. 
+    \item \textbf{Single communication type:} All messages use the same logical 
+    protocol. Multi protocol environments are out of scope.
+    \item \textbf{No cryptographic encryption:} The work focuses on replay protection, which is different from message confidentiality. Encryption layers are assumed in real systems, but not simulated here as replay attacks can still occur on encrypted messages.
+    \item \textbf{Deterministic attacker behaviour:} The attacker follows a 
+    fixed strategy per attack type. Adaptive or learning based attackers are 
+    out of scope.
+\end{itemize}
+
+
+
+\subsection{Implementation Components}
+
+The simulation is implemented across four Python modules:
+
+\begin{itemize}
+    \item \texttt{message.py} — Defines the message structure. Each message
+    object holds a command (UNLOCK/LOCK/START), a nonce (random six-digit
+    integer between 100,000-999,999) and a counter (integer). 
+
+    
+    \item \texttt{sender.py} — Implements the key fob. On each call, it
+    constructs a message with a freshly generated nonce and an incremented
+    counter and then transmits it. 
+
+
+    \item \texttt{receiver.py} — Implements the car ECU. It provides the four
+    validation modes (\texttt{no validation}, \texttt{nonce}, \texttt{counter},
+    \texttt{hybrid}) and holds two pieces of state: A set of past nonces and
+    the last accepted counter value. 
+    
+    \item \texttt{attacker.py} — Implements the Attacker. It captures every
+    transmitted message and provides the replay strategies (delayed, multiple, out-of-order,
+    counter-skip).
+
+    \item \texttt{main.py} — The experiment controller. It builds the
+    (method $\times$ scenario) grid, runs each test in isolation across the
+    configured number of trials, executes the relevant attack and measures the latency and
+    calculate detection rate and attack success rate and writes results to CSV.
+    
+\end{itemize}
+
+Results are exported to a CSV file for analysis and later it is visualised using bar charts showing detection rate, attack success rate and latency comparisons across the four validation methods. The implementation source code is maintained in a Git repository to support transparency and reproducibility.
+
+\pagebreak
+
+\subsection{Evaluation}
+\label{Sec:Evaluation}
+
+To evaluate the system, the following metrics are used: 
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|p{9cm}|}
+\hline
+\textbf{Metric} & \textbf{Description} \\
+\hline
+Replay Detection Rate & Percentage of replay attacks successfully detected by the system \\
+\hline
+Attack Success Rate & Percentage of replay attacks 
+that successfully bypass the validation mechanism and accepted 
+as legitimate messages. \\
+\hline
+Latency & Time taken to process and validate each message \\
+\hline
+%Overhead & Additional data size introduced by the security mechanism \\
+%\hline
+\end{tabular}
+\caption{Evaluation Metrics}
+\label{tab:evaluation_metrics}
+\end{table}
+
+\subsection{Evaluation Metrics Selection}
+
+The hybrid architecture will be evaluated using three cooperative performance indicators, which have been employed to assess security efficiency, system flaws and processing overhead. These evaluations were selected from prior studies in the field of replay attack studies as well as lightweight authentication approaches for IoT devices, in order to meet accepted scientific criteria in the evaluation area.
+
+
+The three selected metrics are:
+ 
+\begin{enumerate}
+    \item \textbf{Detection Rate (DR)} -- measures security effectiveness
+    \item \textbf{Attack Success Rate (ASR)} -- measures system vulnerability
+    \item \textbf{Latency Overhead (LO)} -- measures performance cost
+\end{enumerate}
+ 
+
+\subsubsection{Detection Rate}
+
+
+The Detection Rate is one of the most commonly used metrics to determine the performance of a method. For detecting a replay attack ,it provides a direct measure of how well the method successfully identifies malicious replayed messages that could compromise the integrity of the communication between the devices communicating over the network.
+
+\begin{equation}
+DR = \frac{D_{\text{detected}}}{N_{\text{total\_attacks}}} \times 100\%
+\label{eq:detection_rate}
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $D_{\text{detected}}$ is the number of replay attacks correctly 
+    identified and rejected by the validation mechanism
+    \item $N_{\text{total\_attacks}}$ is the total number of replay attack 
+    attempts during the experiment
+\end{itemize}
+
+A higher Detection Rate, as defined in Equation \ref{eq:detection_rate}, indicates stronger security performance. The value 100\% represents perfect detection and 0\% indicates that there are no attacks identified.\\ 
+
+Previous research, such as that conducted by \textcite{003}, they measured the performance and effectiveness of methods for detecting replay attacks in RF vehicle access systems in terms of classification accuracy and Detection Rate by calculating the percentage of correctly identified malicious replayed messages.Similarly, \textcite{006B} reported detection rates above 90\% when applying SDR 
+and machine learning models to replay attacks on smart cars. These studies 
+confirm Detection Rate as a primary metric for assessing of replay attack 
+defencing effectiveness.\\
+
+\subsubsection{Attack Success Rate (ASR)}
+
+The Attack Success Rate measures the proportion of replay attacks that bypass the validation mechanism and are incorrectly accepted as legitimate messages.\\ 
+
+\begin{equation}
+ASR = \frac{A_{\text{accepted}}}{N_{\text{total\_attacks}}} \times 100\%
+\label{eq:attack_success_rate}
+\end{equation}
+ 
+where:
+\begin{itemize}
+    \item $A_{\text{accepted}}$ is the number of replay attack messages incorrectly accepted as legitimate by the validation mechanism.
+    \item $N_{\text{total\_attacks}}$ is the total number of replay attack attempts during the experiment.
+\end{itemize}
+ 
+
+The Attack Success Rate, defined in Equation \ref{eq:attack_success_rate}, 
+is mathematically related to Detection Rate as:
+ 
+\begin{equation}
+ASR = 100\% - DR
+\label{eq:asr_dr_relation}
+\end{equation}
+ 
+A lower Attack Success Rate indicates more secure system. A value of 0\% represents complete attack prevention, while 100\% indicates a total system compromise.\bigbreak
+
+Attack Success Rate is widely used to quantify the impact of replay attacks. \textcite{001B} showed through their studies on RollBack attacks that even rolling-code RKE systems can be bypassed with high success rates and attack success the most meaningful security metric for these systems.\textcite{005} successfully compromised multiple commercial PKE systems in a
+real world vehicles including models like tesla and McLaren by demonstrating 
+that an attack success is the most meaningful measure of system vulnerability. Similarly,\textcite{002} reported that the replay attacks in RPL networks succeed in degrading packet delivery to below 60\%. ASR therefore provides a direct measure of how successful an attacker is in defeating an validation mechanism
+
+\subsubsection{Latency}
+
+Latency measures the additional communication delay introduced by the security framework.\\
+
+\begin{equation}
+\text{Latency} = T_{secured} - T_{normal}
+\label{eq:latency}
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $T_{secured}$ is the message processing time with the validation 
+    mechanism enabled and
+    \item $T_{normal}$ is the message processing time without validation.
+\end{itemize}
+
+Latency is an important evaluation factor in lightweight IoT security since smart automobile systems rely on real-time communication with minimal latency. High overhead security methods could affect system performance and limit practical use in an resource constrained IoT environments.
+\textcite{new1} identify latency and processing overhead as essential metrics when comparing lightweight authentication schemes for resource constrained IoT devices. \textcite{mod2} emphasize latency measurement when assessing authentication reliability in consumer IoT systems. These studies confirm that latency must be evaluated alongside any other security metrices.
+
+
+
+%\subsection{Justification of Hybrid Approach}
+
+
+%In IoT systems, implementing only one mechanism for secure communication is not enough. Each method provides different levels of security and no single method offers complete protection from replay attacks.\bigbreak
+
+%The nonce-based method ensures message freshness but is unable to maintain message order, whereas the counter-based method can but may fail under certain circumstances.\bigbreak
+
+%Combining the two strategies creates a hybrid method that exceeds any method by preventing replay attacks. This hybrid technique ensures that messages are both unique and organized in order.\bigbreak
+
+%The mentioned security framework is better suited to real-world deployments including IoT like smart vehicles.\bigbreak
+
+\pagebreak
+
+
+% This section is dedicated to the discussion of Ethics in the project.
+% The \section command introduces a new major section in the document.
+\section{Ethics or Ethical Consideration}
+
+This project is entirely performed in a simulated environment, therefore there are no human participants, real experimental data or actual car systems involved. As a result, this investigation involves only minimal ethical risk. \bigbreak
+
+The goal of this project is to analyze specific techniques implemented for replay attacks and then develop a defensive strategy for study purpose. As a result, the findings of this study will not be implemented in real-world situations or in ways that cause harm to any individuals or entities using genuine systems. \bigbreak
+
+The data used in this study includes both simulated and published project data that is publicly available, thus no private or sensitive information is collected or used.
+
+\pagebreak
+% This section is for discussing the Significance of the project.
+% The \section command introduces a new major section in your document.
+\section{Significance of Research}
+
+  
+Replay attacks continue creating major challenges for IoT systems, especially those using smart cars. Currently current solutions typically focus on detection or use complicated techniques that are impractical for lightweight IoT devices.\bigbreak
+
+In this study, we provide a effective and simple approach based on a hybrid nonce counter system. Unlike prior studies, this study focuses on:
+
+\begin{itemize}
+  \item Comparing nonce-based and counter-based techniques.
+  \item Combining both into a hybrid framework.
+  \item Evaluating them in a realistic simulated environment.
+\end{itemize}
+
+\bigbreak
+The key significance of this project includes:
+
+\begin{itemize}
+  \item Providing a lightweight and efficient security solution for smart car IoT systems.
+  \item Improving understanding of replay attack behaviour in real-world scenarios.
+\item Showing how a hybrid approach can improve reliability and security
+\end{itemize}
+\bigbreak
+
+This project can be useful for:
+\begin{itemize}
+  \item IoT system designers.
+  \item Automotive Security Engineers.
+  \item Researchers working on lightweight authentication.
+\end{itemize}
+
+Overall, this study helps in designing more secure and efficient IoT communication systems.
+\pagebreak
+
+% This section discusses the Budget for the research.
+% The \section command introduces a new major section in your LaTeX document.
+\section{Budget}
+
+ 
+This study doesn't require large financial resources because it is entirely based on simulation.
+
+The tools and technologies used are mostly free and open-source. As a result, the project has a minimal overall cost.
+    
+\begin{table}[h]
+\centering
+\caption{Estimated Budget}
+\begin{tabular}{|l|p{7cm}|r|}
+\hline
+\textbf{Item} & \textbf{Description} & \textbf{Cost} \\
+\hline
+Software & Python, VS Code, Libraries & \$0 \\
+\hline
+Hardware & Personal laptop & \$0 \\
+\hline
+Internet & Research and paper access & Existing \\
+\hline
+Miscellaneous & Documentation and printing & \$50 (Approx) \\
+\hline
+\end{tabular}
+\label{tab:estimated_budget}
+\end{table}
+
+Total Estimated Cost: \$50 NZD ( Approximate ).
+
+
+Since no physical devices or hardware setup is required, this makes the project cost effective.
+
+
+\pagebreak
+
+\section{Timeline}
+
+The project project timeline outlines how existing project will advance from beginning to completion based on a 15 week project schedule that proceeds through major phases of the project, such as producing a complete proposal, creating a simulation for the Smart Car System and completing the Evaluation and Final Report.
+
+\begin{table}[h]
+\centering
+
+\begin{tabular}{|l|l|p{9cm}|}
+\hline
+\textbf{Week} & \textbf{Phase} & \textbf{Activities} \\
+\hline
+Week 1  & Topic Selection      & Finalise project topic, define problem statement, aims, and objectives. Initial meeting with supervisor. \\
+\hline
+Week 2  & Literature Review    & Search and collect relevant research papers. Begin systematic literature review. \\
+\hline
+Week 3  & Methodology Planning & Finalise project objectives and methodology. Organise literature into themes. \\
+\hline
+Week 4  & Proposal Drafting    & Complete literature review, identify research gap, prepare proposal draft. \\
+\hline
+Week 5  & Submission           & Finalise and submit project proposal. \\
+\hline
+Week 6  & System Design        & Design smart car communication scenario. Define system components and setup simulation environment. \\
+\hline
+Week 7  & Attack Simulation    & Implement normal communication and replay attack scenario. Validate attack behaviour. \\
+\hline
+Week 8  & Basic Techniques     & Implement nonce-based and counter-based techniques. Test individual methods. \\
+\hline
+Week 9  & Hybrid Framework     & Develop and implement hybrid nonce-counter framework. \\
+\hline
+Week 10 & Data Collection      & Run simulations and collect performance data. Record results. \\
+\hline
+Week 11 & Analysis (Part 1)    & Analyse replay detection performance and system behaviour. \\
+\hline
+Week 12 & Analysis (Part 2)    & Compare nonce, counter, and hybrid approaches. Evaluate strengths and limitations. \\
+\hline
+Week 13 & Results Writing      & Prepare graphs, tables, and write results section. \\
+\hline
+Week 14 & Discussion           & Interpret findings, link results with literature, refine report. \\
+\hline
+Week 15 & Final Submission     & Final editing, proofreading, formatting, and submission. \\
+\hline
+\end{tabular}
+\caption{Project Timeline (Week 1 -- Week 15)}
+\label{tab:project_timeline}
+\end{table}
+
+
+The first phase is an overall design and overview of how we plan to progress our project work throughout the first five weeks (Weeks 1 to 5). This is the phase that we develop our research proposal. During this step, we will do a thorough literature review and design our methodology.\bigbreak
+
+The second phase will implement how we are going to carry out the total project process by creating and testing a Smart Car simulation, replay attack scenario and Hybrid Framework. This phase will take place from weeks 6 to 10.\bigbreak
+
+In the last phase of the project timeline weeks 11 to 15, we will review and analyse and put together our final project report. Next, we will compare multiple techniques and methods and interpret their outcomes and prepare our Final project Report. 
+
+\pagebreak
+
+\section{Results and Analysis}
+
+This section presents the results of the experiments described in
+Section~\ref{Methodology}. All four validation methods were tested against five
+replay scenarios and two robustness scenarios. Every experiment was run as
+an isolated test with a fresh sender, receiver and attacker objects, and each test
+was repeated 30 times. Results are reported and recorded using the three metrics defined in
+Section~\ref{Sec:Evaluation} - Detection Rate (DR), Attack Success Rate (ASR) and latency.
+
+\subsection{Results for Standard Replay Scenarios}
+
+Table~\ref{tab:results_standard} reports the Detection Rate, Attack Success Rate
+and average latency for all four methods across the five standard scenarios. The
+\texttt{no\_attack} scenario contains no replayed messages, so DR and ASR are
+not applicable; it is included only to establish a baseline latency for clean
+traffic.
+
+
+\begin{table}[h]
+\centering
+\caption{Results for the Five Standard Scenarios (30 trials per test)}
+\label{tab:results_standard}
+\small
+\begin{tabular}{|l|l|c|c|c|}
+\hline
+\textbf{Method} & \textbf{Scenario} & \textbf{DR (\%)} & \textbf{ASR (\%)} & \textbf{Latency ($\mu$s)} \\
+\hline
+No Validation & no\_attack       & N/A   & N/A   & 0.264 \\
+No Validation & delayed\_replay  & 0.0   & 100.0 & 0.188 \\
+No Validation & multiple\_replay & 0.0   & 100.0 & 0.178 \\
+No Validation & out\_of\_order   & 0.0   & 100.0 & 0.179 \\
+No Validation & counter\_skip    & 0.0   & 100.0 & 0.202 \\
+\hline
+Nonce-Only & no\_attack       & N/A   & N/A   & 0.376 \\
+Nonce-Only & delayed\_replay  & 100.0 & 0.0   & 0.280 \\
+Nonce-Only & multiple\_replay & 100.0 & 0.0   & 0.280 \\
+Nonce-Only & out\_of\_order   & 100.0 & 0.0   & 0.272 \\
+Nonce-Only & counter\_skip    & 100.0 & 0.0   & 0.304 \\
+\hline
+Counter-Only & no\_attack       & N/A   & N/A   & 0.289 \\
+Counter-Only & delayed\_replay  & 100.0 & 0.0   & 0.273 \\
+Counter-Only & multiple\_replay & 100.0 & 0.0   & 0.714 \\
+Counter-Only & out\_of\_order   & 100.0 & 0.0   & 0.262 \\
+Counter-Only & counter\_skip    & 100.0 & 0.0   & 0.282 \\
+\hline
+Hybrid & no\_attack       & N/A   & N/A   & 0.375 \\
+Hybrid & delayed\_replay  & 100.0 & 0.0   & 0.323 \\
+Hybrid & multiple\_replay & 100.0 & 0.0   & 0.342 \\
+Hybrid & out\_of\_order   & 100.0 & 0.0   & 0.319 \\
+Hybrid & counter\_skip    & 100.0 & 0.0   & 0.373 \\
+\hline
+\end{tabular}
+\end{table}
+
+
+
+The results shows a clear and expected differene of the unprotected baseline and the three methods. The No Validation method accepted every replayed message, producing a 100\% Attack Success Rate and a 0\% Detection Rate across all four standard attacks.This confirms that without any freshness check, a smart car ECU is completely exposed to the replay attacks.\\ 
+
+However, all the three protected methods detected and rejected every replayed message, achieving 100\% Detection Rate and 0\% Attack Success Rate on all five standard scenarios. Nonce-Only succeeds because each replayed message carries a nonce that the ECU has already saved, so the reply is recognised and hence it is rejected. Counter-Only succeeds because each replayed message carries a counter value that is not greater than the last accepted counter. Hybrid succeeds
+because a replayed message fails both checks at once. Figure~\ref{fig:asr_all} shows the Attack Success Rate for all four methods across all six attack scenarios, with the two robustness scenarios highlighted separately on the right.
+ 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/fig1_asr_all.png}
+    \caption{Attack Success Rate across six attack scenarios}
+    \label{fig:asr_all}
+\end{figure}
+
+The five standard scenarios fail to differentiate between the three protected methods. This discovery is significant. A single lightweight freshness check is enough for standard replay attacks, where the attacker simply re-transmits a message that the ECU has already processed. The practical differences between the methods are only obvious under more challenging situations, as tested in the following subsection.
+
+\subsection{Results for Robustness Scenarios}
+ 
+
+The two robustness scenarios were designed to represent operating conditions that the standard tests often ignore.
+\begin{enumerate}
+    \item An ECU power loss (reset) and
+    \item A jamming attack (desync).
+\end{enumerate}
+
+The Table~\ref{tab:results_robust} reports the results.
+ 
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+ & \multicolumn{2}{c|}{\textbf{Reset (Power Loss)}} & \multicolumn{2}{c|}{\textbf{Desync (Jamming)}} \\
+\hline
+\textbf{Method} & \textbf{DR (\%)} & \textbf{ASR (\%)} & \textbf{DR (\%)} & \textbf{ASR (\%)} \\
+\hline
+No Validation & 0.0   & 100.0 & 0.0   & 100.0 \\
+Nonce-Only    & 0.0   & 100.0 & 0.0   & 100.0 \\
+Counter-Only  & 100.0 & 0.0   & 100.0 & 0.0   \\
+Hybrid        & 100.0 & 0.0   & 100.0 & 0.0   \\
+\hline
+\end{tabular}
+\caption{Results for the Reset and Desync Robustness Scenarios (30 trials per cell)}
+\label{tab:results_robust}
+\end{table}
+
+
+These results represents the difference of the standard scenarios that could not show.
+Figure~\ref{fig:asr_robustness} presents the same data graphically and makes the
+separation visible.
+
+
+ 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/fig2_asr_robustness.png}
+    \caption{Attack Success Rate under the reset and desync robustness scenarios.}
+    \label{fig:asr_robustness}
+\end{figure}
+
+
+\textbf{Reset scenario.} Nonce-Only failed completely, with a 100\% Attack Success Rate. When the ECU loses power, the nonce list which id held in volatile RAM, is cleared, while the counter which is held in non-volatile EEPROM is preserved. After the reset the ECU has no record of any previously stored nonce. Hence, every replayed message appears fresh and then it is accepted. Counter-Only and Hybrid both achieved a 100\% Detection Rate, because the stored counter value will be a lower counter values and hence new value will be rejected.\\ 
+
+\textbf{Desync scenario.} Nonce-Only again failed with a 100\% Attack Success Rate. In this scenario the attacker jams one message in transit. That means, the attacker captures a message and the ECU never receives it, so its nonce is never stored. When the attacker later replays that jammed message, it appears fresh to the Nonce-Only and then accepted. Counter-Only and Hybrid both rejected the replayed message, because the stored counter has already moved past the jammed message's counter value.\\ 
+
+Both robustness scenarios defeat Nonce-Only, but for different underlying reasons. In the reset scenario the ECU \emph{had seen} the messages and then \emph{forgot} them. \\ 
+
+In the desync scenario the ECU \emph{never saw} the jammed message at all. The fact that a single mechanism (the counter) defends against both, while another single mechanism (the nonce) fails both. This is the central experimental outcome of this project.
+
+
+\subsection{Security Capability Summary}
+
+Figure~\ref{fig:capability} summarises the security capability of each method as the number of attack scenarios it fully defended (Detection Rate of 100\%) out of six attack scenarios.
+ 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/fig3_capability_DR.png}
+    \caption{Security capability by Detection Rate}
+    \label{fig:capability}
+\end{figure}
+ 
+No Validation defended zero scenarios. Nonce-Only defended four of the six, but failed the reset and desync scenarios. Counter-Only and Hybrid each defended all six scenarios. In terms of pure
+detection capability on the scenarios tested, Counter-Only and Hybrid are therefore equally effective and both are strictly stronger than Nonce-Only.
+
+\subsection{Latency Analysis}
+ 
+Latency was measured as the per-message validation time using Python's \texttt{time.perf\_counter()}. Figure~\ref{fig:latency} shows the mean validation latency for each method, averaged across all scenarios.
+ 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/fig4_latency.png}
+    \caption{Mean per-message validation latency by method, averaged across all
+    scenarios.}
+    \label{fig:latency}
+\end{figure}
+
+The No Validation baseline was the fastest at approximately 0.207~$\mu$s per message, as expected, since it performs no checks. Among the protected methods, Counter-Only was the fastest at approximately 0.272~$\mu$s, followed by Hybrid at approximately 0.346~$\mu$s and Nonce-Only at approximately 0.355~$\mu$s. The overhead added by each method relative to the baseline was therefore about 0.065~$\mu$s for Counter-Only, 0.140~$\mu$s for Hybrid and 0.148~$\mu$s for
+Nonce-Only.\\ 
+ 
+The absolute differences are extremely small. The gap between the fastest and slowest protected method is on the order of 0.08~$\mu$s, or eighty billionths of a second. By comparison, the physical action of a car door unlocking takes upto 100 milliseconds, which is too longer than any of these validation times. The latency cost of replay protection is therefore negligible in any practical scenario. %The single high reading for Counter-Only in the \texttt{multiple\_replay} cell of Table~\ref{tab:results_standard} (0.714~$\mu$s) is a measurement outlier of the same kind and does not reflect a genuine cost of the method.\\ 
+ 
+
+\subsection{Hypothesis Evaluation}
+
+
+The four hypotheses stated in Section~\ref{sec:hypotheses-ref} can now be assessed against the results.
+
+\begin{itemize}
+    \item \textbf{H1 (Detection Capability)} stated that Hybrid would achieve higher Detection Rate than either individual method. This is \emph{partially supported}.Hybrid achieved a higher Detection Rate than Nonce-Only, but it equal with Counter-Only, which also defended all scenarios.
+
+    \item \textbf{H2 (Attack Resistance)} stated that the Attack Success Rate would be lowest for Hybrid across all attack types compared with the No Validation baseline.This is \emph{supported}. Hybrid achieved a 0\% Attack Success Rate in every scenario, against a 100\% baseline.
+
+    \item \textbf{H3 (Performance Trade-off)} predicted the latency order Counter-Only $<$ Nonce-Only $<$ Hybrid. This is \emph{not supported}. The test results showed as order  Counter-Only $<$ Hybrid $<$ Nonce-Only.
+
+    \item \textbf{H4 (Attack Type Vulnerability)} predicted that Nonce only methods will fail against a counter-skip attack where a fresh nonce is paired with a manipulated counter, while Counter only methods will fail under desynchronisation scenarios and hybrid method will handle both attack types effectively. This is \emph{partially supported}. Nonce-Only failed both robustness scenarios. But, Counter-Only did \emph{not} fail the desync scenario in this implementation and the hybrid handled all scenarios.
+
+\end{itemize}
+
+
+%=================================================================================================
+
+\subsection{Summary of Findings}
+
+The experiments produced three main findings. 
+
+\begin{itemize}
+    \item First, any single lightweight freshness check, nonce or counter is sufficient to stop ordinary replay attacks, reducing the Attack Success Rate from 100\% to 0\% on all five standard scenarios.
+
+    \item Second, the two methods fails under the realistic conditions: Nonce-Only fails completely under both power loss and jamming, while Counter-Only and Hybrid remain fully effective.
+
+    \item Third, the latency cost of all protected methods is negligible and effectively same, allowing for increased security without sacrificing the performance. In all scenarios analyzed, Counter-Only and Hybrid were unaffected
+
+
+\end{itemize}
+
+
+
+%==============================================================================
+
+\pagebreak
+
+% This section is for the Conclusion of the research.
+% The \section command introduces a new major section in your document.
+\section{Conclusion}
+This project focuses on addressing vulnerabilities in the authentication of smart automobile IoT systems related with replay attacks, which are currently a critical issue because they can bypass authentication without breaking the encryption.\bigbreak
+
+To address this issue, this study recommends creating a lightweight hybrid framework that combines nonce based and counter based algorithmic techniques for communication freshness and sequence validation and which will prevent replay attacks. \bigbreak
+
+This study uses a simulation based approach to analyze normal communication, replay attack scenarios and various protection methods. The expected results of this study will show that a hybrid strategy delivers a higher level of security and reliability than either method separately.\bigbreak
+
+Overall, this project will strengthen the security of the IoT ecosystem by proposing an effective, efficient, and practical method for mitigating replay attacks on smart car systems.
+  
+
+% This is the References or Bibliography section.
+% A new page is started with \newpage.
+% The \printbibliography command lists all cited works.
+
+\newpage
+\printbibliography
+
+\newpage
+
+
+\appendix
+\section{Appendix A: Source Code}
+\label{app:source-code}
+ 
+The complete source code for the simulation is provided below. All five
+modules are written in Python 3 using only the standard library. The code is
+also maintained in a public Git repository for transparency and
+reproducibility. 
+ 
+\subsection*{message\_final.py}
+\addcontentsline{toc}{subsection}{Appendix A -- message\_final.py}
+\noindent Message structure.
+ 
+\begin{lstlisting}[language=Python,caption={message\_final.py},label={lst:message-final}]
+"""
+message_final.py
+Defines the Message structure exchanged between key fob and ECU.
+"""
+ 
+from dataclasses import dataclass
+from datetime import datetime
+ 
+ 
+@dataclass
+class Message:
+    """A command message transmitted from the key fob to the car ECU."""
+    command: str
+    nonce: int
+    counter: int
+    timestamp: float
+ 
+    def __str__(self) -> str:
+        return f"[{self.command}] Counter={self.counter} Nonce={self.nonce}"
+ 
+ 
+def create_message(command: str, nonce: int, counter: int) -> Message:
+    """Construct a Message with the current timestamp."""
+    return Message(
+        command=command,
+        nonce=nonce,
+        counter=counter,
+        timestamp=datetime.now().timestamp()
+    )
+ 
+\end{lstlisting}
+
+\pagebreak
+ 
+\subsection*{sender\_final.py}
+\addcontentsline{toc}{subsection}{Appendix A -- sender\_final.py}
+\noindent Key fob (sender).
+ 
+\begin{lstlisting}[language=Python,caption={sender\_final.py},label={lst:sender-final}]
+"""
+sender_final.py
+Simulates a smart car key fob. Generates authenticated command messages
+containing a command, a random nonce, and an incrementing counter.
+"""
+ 
+import random
+from message_final import Message, create_message
+ 
+ 
+class KeyFob:
+    """Key fob that generates command messages for transmission to the ECU."""
+ 
+    NONCE_MIN = 100_000
+    NONCE_MAX = 999_999
+ 
+    def __init__(self):
+        self.counter = 0
+ 
+    def _generate_nonce(self) -> int:
+        return random.randint(self.NONCE_MIN, self.NONCE_MAX)
+ 
+    def _send_command(self, command: str) -> Message:
+        self.counter += 1
+        return create_message(
+            command=command,
+            nonce=self._generate_nonce(),
+            counter=self.counter
+        )
+ 
+    def unlock(self) -> Message:
+        return self._send_command("UNLOCK")
+ 
+    def lock(self) -> Message:
+        return self._send_command("LOCK")
+ 
+    def start(self) -> Message:
+        return self._send_command("START")
+ 
+    def reset(self) -> None:
+        """Reset the counter to zero (simulates battery removal)."""
+        self.counter = 0
+ 
+\end{lstlisting}
+
+\pagebreak
+ 
+\subsection*{receiver\_final.py}
+\addcontentsline{toc}{subsection}{Appendix A -- receiver\_final.py}
+\noindent Car ECU (receiver) and the four validation methods.
+ 
+\begin{lstlisting}[language=Python,caption={receiver\_final.py},label={lst:receiver-final}]
+"""
+receiver_final.py
+Simulates the car ECU. Implements four validation methods for incoming
+messages: no protection, nonce-only, counter-only, and hybrid.
+"""
+ 
+from typing import Set
+from message_final import Message
+ 
+ 
+class CarECU:
+    """Car ECU that validates incoming messages using a configurable method."""
+ 
+    METHOD_NO_VALIDATION = 1
+    METHOD_NONCE_ONLY = 2
+    METHOD_COUNTER_ONLY = 3
+    METHOD_HYBRID = 4
+ 
+    def __init__(self, method: int = METHOD_NO_VALIDATION):
+        self.method = method
+        self.nonce_list: Set[int] = set()
+        self.last_counter: int = 0
+        self.accepted_count: int = 0
+        self.rejected_count: int = 0
+ 
+    def receive(self, msg: Message) -> bool:
+        """Validate an incoming message and return True if accepted."""
+        if self.method == self.METHOD_NO_VALIDATION:
+            result = self._method_no_validation(msg)
+        elif self.method == self.METHOD_NONCE_ONLY:
+            result = self._method_nonce_only(msg)
+        elif self.method == self.METHOD_COUNTER_ONLY:
+            result = self._method_counter_only(msg)
+        elif self.method == self.METHOD_HYBRID:
+            result = self._method_hybrid(msg)
+        else:
+            raise ValueError(f"Unknown validation method: {self.method}")
+ 
+        if result:
+            self.accepted_count += 1
+        else:
+            self.rejected_count += 1
+        return result
+ 
+    def _method_no_validation(self, msg: Message) -> bool:
+        """Accept every message without checks. Baseline control case."""
+        return True
+ 
+    def _method_nonce_only(self, msg: Message) -> bool:
+        """Reject if the nonce has been seen before, otherwise accept and store."""
+        if msg.nonce in self.nonce_list:
+            return False
+        self.nonce_list.add(msg.nonce)
+        return True
+ 
+    def _method_counter_only(self, msg: Message) -> bool:
+        """Accept only if the counter exceeds the last accepted counter."""
+        if msg.counter <= self.last_counter:
+            return False
+        self.last_counter = msg.counter
+        return True
+ 
+    def _method_hybrid(self, msg: Message) -> bool:
+        """Accept only if nonce is unseen AND counter exceeds last accepted."""
+        if msg.nonce in self.nonce_list:
+            return False
+        if msg.counter <= self.last_counter:
+            return False
+        self.nonce_list.add(msg.nonce)
+        self.last_counter = msg.counter
+        return True
+ 
+    def reset(self) -> None:
+        """Full reset of all state. Used between experiments for isolation."""
+        self.nonce_list.clear()
+        self.last_counter = 0
+        self.accepted_count = 0
+        self.rejected_count = 0
+ 
+    def volatile_reset(self) -> None:
+        """
+        Simulate a realistic ECU power loss.
+ 
+        The nonce list (assumed to live in volatile RAM) is cleared.
+        The last counter (assumed to live in non-volatile EEPROM) is preserved.
+        """
+        self.nonce_list.clear()
+        # last_counter is intentionally preserved
+ 
+\end{lstlisting}
+
+\pagebreak
+ 
+\subsection*{attacker\_final.py}
+\addcontentsline{toc}{subsection}{Appendix A -- attacker\_final.py}
+\noindent Attacker and replay strategies.
+ 
+\begin{lstlisting}[language=Python,caption={attacker\_final.py},label={lst:attacker-final}]
+"""
+attacker_final.py
+Simulates an adversary positioned between the key fob and the ECU.
+Captures messages passively and replays them under various strategies.
+"""
+ 
+from typing import List
+from message_final import Message
+ 
+ 
+class Attacker:
+    """Adversary that captures and replays messages between key fob and ECU."""
+ 
+    def __init__(self):
+        self.captured_messages: List[Message] = []
+ 
+    def intercept(self, msg: Message) -> Message:
+        """Capture a message in transit and forward it unchanged to the ECU."""
+        self.captured_messages.append(msg)
+        return msg
+ 
+    def silent_capture(self, msg: Message) -> None:
+        """
+        Capture a message without forwarding it to the ECU.
+        Simulates a jamming attack: the message is intercepted in transit
+        and never reaches the receiver.
+        """
+        self.captured_messages.append(msg)
+ 
+    def delayed_replay(self, index: int = 0) -> List[Message]:
+        """Replay a single previously captured message at the given index."""
+        if index >= len(self.captured_messages):
+            return []
+        return [self.captured_messages[index]]
+ 
+    def multiple_replay(self, index: int = 0, count: int = 3) -> List[Message]:
+        """Replay the same captured message multiple times in succession."""
+        if index >= len(self.captured_messages):
+            return []
+        return [self.captured_messages[index]] * count
+ 
+    def out_of_order_replay(self) -> List[Message]:
+        """Replay all captured messages in reverse chronological order."""
+        return list(reversed(self.captured_messages))
+ 
+    def counter_skip_replay(self) -> List[Message]:
+        """Replay the oldest captured message (lowest counter)."""
+        if not self.captured_messages:
+            return []
+        return [self.captured_messages[0]]
+ 
+    def clear_captured(self) -> None:
+        self.captured_messages.clear()
+ 
+\end{lstlisting}
+
+\pagebreak
+ 
+\subsection*{main\_final.py}
+\addcontentsline{toc}{subsection}{Appendix A -- main\_final.py}
+\noindent Experiment controller.
+ 
+\begin{lstlisting}[language=Python,caption={main\_final.py},label={lst:main-final}]
+"""
+main_final.py
+Experiment controller for the replay attack prevention simulation.
+Runs each (validation method x attack scenario) cell in isolation,
+measures latency, computes detection rate and attack success rate,
+and exports results to CSV.
+"""
+ 
+import time
+import csv
+import random
+import statistics
+ 
+from sender_final import KeyFob
+from receiver_final import CarECU
+from attacker_final import Attacker
+ 
+# ---- Configuration ----
+NUM_NORMAL_MESSAGES = 10
+NUM_TRIALS = 30
+MULTIPLE_REPLAY_COUNT = 5
+RANDOM_SEED = 42
+ 
+METHODS = [
+    (CarECU.METHOD_NO_VALIDATION, "No Validation"),
+    (CarECU.METHOD_NONCE_ONLY, "Nonce-Only"),
+    (CarECU.METHOD_COUNTER_ONLY, "Counter-Only"),
+    (CarECU.METHOD_HYBRID, "Hybrid"),
+]
+ 
+STANDARD_SCENARIOS = [
+    "no_attack", "delayed_replay", "multiple_replay",
+    "out_of_order", "counter_skip",
+]
+ 
+ 
+def run_experiment(method_id, scenario):
+    """Run a single (method, scenario) cell once and return its metrics."""
+    keyfob = KeyFob()
+    car = CarECU(method=method_id)
+    attacker = Attacker()
+ 
+    legit_latencies, attack_latencies = [], []
+    legit_accepted = attacks_accepted = attacks_rejected = 0
+ 
+    if scenario in ("no_attack", "delayed_replay", "multiple_replay",
+                    "out_of_order", "counter_skip"):
+        for _ in range(NUM_NORMAL_MESSAGES):
+            msg = keyfob.unlock()
+            captured = attacker.intercept(msg)
+            start = time.perf_counter()
+            accepted = car.receive(captured)
+            legit_latencies.append((time.perf_counter() - start) * 1_000_000)
+            legit_accepted += int(accepted)
+ 
+        if scenario == "no_attack":
+            attack_messages = []
+        elif scenario == "delayed_replay":
+            attack_messages = attacker.delayed_replay(index=0)
+        elif scenario == "multiple_replay":
+            attack_messages = attacker.multiple_replay(index=0, count=MULTIPLE_REPLAY_COUNT)
+        elif scenario == "out_of_order":
+            attack_messages = attacker.out_of_order_replay()
+        elif scenario == "counter_skip":
+            attack_messages = attacker.counter_skip_replay()
+ 
+    elif scenario == "reset_attack":
+        for _ in range(NUM_NORMAL_MESSAGES):
+            msg = keyfob.unlock()
+            captured = attacker.intercept(msg)
+            start = time.perf_counter()
+            accepted = car.receive(captured)
+            legit_latencies.append((time.perf_counter() - start) * 1_000_000)
+            legit_accepted += int(accepted)
+        car.volatile_reset()
+        attack_messages = list(attacker.captured_messages)
+ 
+    elif scenario == "desync_attack":
+        first_batch = NUM_NORMAL_MESSAGES // 2
+        for _ in range(first_batch):
+            msg = keyfob.unlock()
+            captured = attacker.intercept(msg)
+            start = time.perf_counter()
+            accepted = car.receive(captured)
+            legit_latencies.append((time.perf_counter() - start) * 1_000_000)
+            legit_accepted += int(accepted)
+        jammed_msg = keyfob.unlock()
+        attacker.silent_capture(jammed_msg)
+        for _ in range(NUM_NORMAL_MESSAGES - first_batch - 1):
+            msg = keyfob.unlock()
+            captured = attacker.intercept(msg)
+            start = time.perf_counter()
+            accepted = car.receive(captured)
+            legit_latencies.append((time.perf_counter() - start) * 1_000_000)
+            legit_accepted += int(accepted)
+        attack_messages = [jammed_msg]
+    else:
+        raise ValueError(f"Unknown scenario: {scenario}")
+ 
+    for msg in attack_messages:
+        start = time.perf_counter()
+        accepted = car.receive(msg)
+        attack_latencies.append((time.perf_counter() - start) * 1_000_000)
+        if accepted:
+            attacks_accepted += 1
+        else:
+            attacks_rejected += 1
+ 
+    total_attacks = len(attack_messages)
+    detection_rate = (attacks_rejected / total_attacks * 100) if total_attacks else None
+    asr = (attacks_accepted / total_attacks * 100) if total_attacks else None
+    all_latencies = legit_latencies + attack_latencies
+    avg_latency = statistics.mean(all_latencies) if all_latencies else 0.0
+ 
+    return {
+        "detection_rate": detection_rate, "asr": asr,
+        "avg_latency_us": avg_latency, "attacks_total": total_attacks,
+    }
+ 
+ 
+def run_trials(method_id, scenario, num_trials):
+    """Run a cell num_trials times and average the metrics."""
+    drs, asrs, lats = [], [], []
+    for _ in range(num_trials):
+        r = run_experiment(method_id, scenario)
+        if r["detection_rate"] is not None:
+            drs.append(r["detection_rate"]); asrs.append(r["asr"])
+        lats.append(r["avg_latency_us"])
+    return {
+        "detection_rate": statistics.mean(drs) if drs else None,
+        "asr": statistics.mean(asrs) if asrs else None,
+        "avg_latency_us": statistics.mean(lats),
+        "std_latency_us": statistics.stdev(lats) if len(lats) > 1 else 0.0,
+        "num_trials": num_trials,
+    }
+ 
+ 
+if __name__ == "__main__":
+    if RANDOM_SEED is not None:
+        random.seed(RANDOM_SEED)
+    # (interactive menu omitted in this listing for brevity)
+ 
+\end{lstlisting}
+
+\pagebreak
+
+\subsection*{Plot\_Graph.py}
+\addcontentsline{toc}{subsection}{Appendix A -- Plot\_Graph.py}
+\noindent Experiment controller.
+ 
+\begin{lstlisting}[language=Python,caption={Plot Graph.py},label={lst:Plot Graph}]
+"""
+Plot_graph.py
+Generates result graphs from the simulation CSV output files.
+"""
+ 
+Usage:
+    1. Run main_final.py first to generate the CSV files.
+    2. Run this script in the same folder as the CSVs:
+       python Plot_graph.py
+ 
+Output:
+    Four PNG files are saved in the current directory:
+      - fig1_asr_all.png          (ASR across all 6 attack scenarios)
+      - fig2_asr_robustness.png   (ASR under reset and desync only)
+      - fig3_capability_DR.png    (Detection Rate capability summary)
+      - fig4_latency.png          (mean validation latency per method)
+ 
+Requirements:
+    pip install matplotlib numpy
+"""
+ 
+import csv
+import numpy as np
+import matplotlib
+matplotlib.use("Agg")  # non-interactive backend (works on servers)
+import matplotlib.pyplot as plt
+ 
+# ---- Consistent colours across all charts ----
+COLOURS = {
+    "No Validation": "#9aa0a6",   # grey
+    "Nonce-Only":    "#e8a33d",   # amber
+    "Counter-Only":  "#4c8fbf",   # blue
+    "Hybrid":        "#2e9e5b",   # green
+}
+METHOD_ORDER = ["No Validation", "Nonce-Only", "Counter-Only", "Hybrid"]
+ 
+# ---- CSV file names (produced by main_final.py) ----
+GRID_FILE    = "results_full_grid.csv"
+RESET_FILE   = "results_reset_scenario.csv"
+DESYNC_FILE  = "results_desync_scenario.csv"
+ 
+# Single-method files (produced by menu option [4] for each method)
+SINGLE_FILES = {
+    "No Validation": "results_no_validation.csv",
+    "Nonce-Only":    "results_nonce_only.csv",
+    "Counter-Only":  "results_counter_only.csv",
+    "Hybrid":        "results_hybrid.csv",
+}
+ 
+ 
+# =====================================================================
+#  Helper functions
+# =====================================================================
+ 
+def load_csv(filename):
+    """Load a CSV file and return a list of row dictionaries."""
+    with open(filename) as f:
+        return list(csv.DictReader(f))
+ 
+ 
+def to_float(value):
+    """Convert a CSV cell to float, returning None for empty values."""
+    if value in ("", None):
+        return None
+    return float(value)
+ 
+ 
+# =====================================================================
+#  Load all data
+# =====================================================================
+ 
+print("Loading CSV files...")
+grid_rows   = load_csv(GRID_FILE)
+reset_rows  = load_csv(RESET_FILE)
+desync_rows = load_csv(DESYNC_FILE)
+ 
+# Build a lookup: (method_name, scenario) -> ASR value
+asr_lookup = {}
+for row in grid_rows + reset_rows + desync_rows:
+    asr_lookup[(row["method_name"], row["scenario"])] = to_float(row["asr"])
+ 
+# Build a lookup: (method_name, scenario) -> Detection Rate value
+dr_lookup = {}
+for row in grid_rows + reset_rows + desync_rows:
+    dr_lookup[(row["method_name"], row["scenario"])] = to_float(row["detection_rate"])
+ 
+print("Data loaded.\n")
+ 
+# ---- Shared plot settings ----
+plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 11})
+ 
+ 
+# =====================================================================
+#  FIGURE 1: ASR across all 6 attack scenarios (combined chart)
+# =====================================================================
+ 
+print("Generating Figure 1: ASR across all scenarios...")
+ 
+scenarios = [
+    "delayed_replay", "multiple_replay", "out_of_order",
+    "counter_skip", "reset_attack", "desync_attack",
+]
+scenario_labels = [
+    "Delayed", "Multiple", "Out-of-\norder",
+    "Counter-\nskip", "Reset", "Desync",
+]
+ 
+fig, ax = plt.subplots(figsize=(11, 5.2))
+x = np.arange(len(scenarios))
+bar_width = 0.2
+ 
+for i, method in enumerate(METHOD_ORDER):
+    values = [asr_lookup[(method, s)] for s in scenarios]
+    bars = ax.bar(
+        x + (i - 1.5) * bar_width, values, bar_width,
+        label=method, color=COLOURS[method],
+        edgecolor="black", linewidth=0.4,
+    )
+    # Add value labels on each bar
+    for bar, val in zip(bars, values):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2, val + 1.5,
+            f"{val:.0f}", ha="center", va="bottom", fontsize=7.5,
+        )
+ 
+# Shade the robustness region
+ax.axvspan(3.5, 5.5, color="#fff4e6", alpha=0.6, zorder=0)
+ax.text(4.5, 108, "Robustness scenarios", ha="center",
+        fontsize=9, style="italic", color="#a8631b")
+ 
+ax.set_xticks(x)
+ax.set_xticklabels(scenario_labels)
+ax.set_ylabel("Attack Success Rate (%)")
+ax.set_ylim(0, 118)
+ax.set_title("Attack Success Rate across All Attack Scenarios (lower is better)")
+ax.legend(ncol=4, loc="upper center", frameon=False,
+          bbox_to_anchor=(0.5, -0.13))
+for spine in ("top", "right"):
+    ax.spines[spine].set_visible(False)
+ax.grid(axis="y", linestyle=":", alpha=0.5)
+ 
+fig.tight_layout()
+fig.savefig("fig1_asr_all.png", dpi=200, bbox_inches="tight")
+plt.close(fig)
+print("  -> fig1_asr_all.png saved")
+ 
+ 
+# =====================================================================
+#  FIGURE 2: ASR for robustness scenarios only (reset + desync)
+# =====================================================================
+ 
+print("Generating Figure 2: ASR robustness scenarios...")
+ 
+asr_reset  = {r["method_name"]: to_float(r["asr"]) for r in reset_rows}
+asr_desync = {r["method_name"]: to_float(r["asr"]) for r in desync_rows}
+ 
+fig, ax = plt.subplots(figsize=(8.5, 5))
+scenario_names = ["Reset\n(power loss)", "Desync\n(jamming)"]
+x = np.arange(2)
+bar_width = 0.2
+ 
+for i, method in enumerate(METHOD_ORDER):
+    values = [asr_reset[method], asr_desync[method]]
+    bars = ax.bar(
+        x + (i - 1.5) * bar_width, values, bar_width,
+        label=method, color=COLOURS[method],
+        edgecolor="black", linewidth=0.4,
+    )
+    for bar, val in zip(bars, values):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2, val + 1.5,
+            f"{val:.0f}", ha="center", va="bottom", fontsize=9,
+            fontweight="bold" if val >= 100 else "normal",
+        )
+ 
+# Annotate Nonce-Only failures
+ax.annotate("FAILS", xy=(-0.5 * bar_width, 100),
+            xytext=(-0.5 * bar_width, 55),
+            ha="center", color="#b3261e", fontweight="bold", fontsize=9)
+ax.annotate("FAILS", xy=(1 - 0.5 * bar_width, 100),
+            xytext=(1 - 0.5 * bar_width, 55),
+            ha="center", color="#b3261e", fontweight="bold", fontsize=9)
+ 
+ax.set_xticks(x)
+ax.set_xticklabels(scenario_names)
+ax.set_ylabel("Attack Success Rate (%)")
+ax.set_ylim(0, 115)
+ax.set_title(
+    "Attack Success Rate under Robustness Scenarios\n"
+    "(Nonce-Only fails both; Counter-Only and Hybrid block all)"
+)
+ax.legend(ncol=4, loc="upper center", frameon=False,
+          bbox_to_anchor=(0.5, -0.12))
+for spine in ("top", "right"):
+    ax.spines[spine].set_visible(False)
+ax.grid(axis="y", linestyle=":", alpha=0.5)
+ 
+fig.tight_layout()
+fig.savefig("fig2_asr_robustness.png", dpi=200, bbox_inches="tight")
+plt.close(fig)
+print("  -> fig2_asr_robustness.png saved")
+ 
+ 
+# =====================================================================
+#  FIGURE 3: Security capability by Detection Rate
+# =====================================================================
+ 
+print("Generating Figure 3: Security capability (Detection Rate)...")
+ 
+# Count how many of the 6 attack scenarios each method fully defends
+defended = {}
+for method in METHOD_ORDER:
+    count = sum(
+        1 for s in scenarios
+        if (dr_lookup.get((method, s)) or 0) >= 100
+    )
+    defended[method] = count
+ 
+fig, ax = plt.subplots(figsize=(8, 4.8))
+values = [defended[m] for m in METHOD_ORDER]
+bars = ax.bar(
+    METHOD_ORDER, values,
+    color=[COLOURS[m] for m in METHOD_ORDER],
+    edgecolor="black", linewidth=0.4,
+)
+for bar, val in zip(bars, values):
+    ax.text(
+        bar.get_x() + bar.get_width() / 2, val + 0.08,
+        f"{val} / 6", ha="center", va="bottom", fontweight="bold",
+    )
+ 
+ax.set_ylabel("Scenarios fully defended\n(100% Detection Rate)")
+ax.set_ylim(0, 6.9)
+ax.set_title(
+    "Security Capability by Detection Rate\n"
+    "(number of attack scenarios where Detection Rate = 100%)"
+)
+for spine in ("top", "right"):
+    ax.spines[spine].set_visible(False)
+ax.grid(axis="y", linestyle=":", alpha=0.5)
+ 
+fig.tight_layout()
+fig.savefig("fig3_capability_DR.png", dpi=200, bbox_inches="tight")
+plt.close(fig)
+print("  -> fig3_capability_DR.png saved")
+ 
+ 
+# =====================================================================
+#  FIGURE 4: Mean validation latency (no error bars, with overhead)
+# =====================================================================
+ 
+print("Generating Figure 4: Validation latency...")
+ 
+# Compute mean latency per method from single-method CSVs
+mean_latency = {}
+for method, filename in SINGLE_FILES.items():
+    rows = load_csv(filename)
+    latencies = [to_float(r["avg_latency_us"]) for r in rows]
+    mean_latency[method] = sum(latencies) / len(latencies)
+ 
+baseline = mean_latency["No Validation"]
+ 
+fig, ax = plt.subplots(figsize=(8.5, 5))
+values = [mean_latency[m] for m in METHOD_ORDER]
+bars = ax.bar(
+    METHOD_ORDER, values,
+    color=[COLOURS[m] for m in METHOD_ORDER],
+    edgecolor="black", linewidth=0.5, width=0.6,
+)
+ 
+# Bold value labels on each bar
+for bar, val in zip(bars, values):
+    ax.text(
+        bar.get_x() + bar.get_width() / 2, val + 0.006,
+        f"{val:.3f}", ha="center", va="bottom",
+        fontsize=10, fontweight="bold",
+    )
+ 
+# Dashed baseline line
+ax.axhline(baseline, color="#9aa0a6", linestyle="--", linewidth=1.2)
+ax.text(3.45, baseline + 0.004, f"baseline ({baseline:.3f})",
+        ha="right", va="bottom", fontsize=8, color="#666")
+ 
+# Overhead annotations for protected methods
+for i, method in enumerate(["Nonce-Only", "Counter-Only", "Hybrid"], start=1):
+    overhead = mean_latency[method] - baseline
+    ax.annotate(
+        f"+{overhead:.3f}", xy=(i, mean_latency[method]),
+        xytext=(i, mean_latency[method] + 0.035),
+        ha="center", fontsize=8, color="#444",
+        arrowprops=dict(arrowstyle="-", color="#bbb", lw=0.8),
+    )
+ 
+ax.set_ylabel("Average validation latency (microseconds)")
+ax.set_ylim(0, 0.46)
+ax.set_title(
+    "Mean Per-Message Validation Latency by Method\n"
+    "(dashed line = no-protection baseline; +value = overhead added)"
+)
+for spine in ("top", "right"):
+    ax.spines[spine].set_visible(False)
+ax.grid(axis="y", linestyle=":", alpha=0.5)
+ 
+fig.tight_layout()
+fig.savefig("fig4_latency.png", dpi=200, bbox_inches="tight")
+plt.close(fig)
+print("  -> fig4_latency.png saved")
+ 
+ 
+# =====================================================================
+#  Done
+# =====================================================================
+print("\nAll four figures generated successfully.")
+print("Copy them to your LaTeX images/ folder for the report.")
+ 
+\end{lstlisting}
+
+% The \end{document} command indicates the end of the LaTeX document.
+\end{document}
