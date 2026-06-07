@@ -1,18 +1,7 @@
 """
-attacker_final.py  (v2)
-=======================
+attacker_final.py
 Simulates an adversary positioned between the key fob and the ECU.
-
-WHAT CHANGED IN v2
-------------------
-Almost nothing -- the attacker is deliberately simple (a worst-case passive
-capture-and-replay adversary). The new "counter_rollback" scenario re-uses the
-existing capture buffer: the experiment controller forces the ECU to roll back
-its counter and then replays the captured messages. No new attacker method is
-required, which keeps the threat model honest and unchanged.
-
-silent_capture() (added for the desync scenario in late v1) models a jamming
-attacker that records a message without letting it reach the ECU.
+Captures messages passively and replays them under various strategies.
 """
 
 from typing import List
@@ -25,6 +14,8 @@ class Attacker:
     def __init__(self):
         self.captured_messages: List[Message] = []
 
+    # ---- Capture ----
+
     def intercept(self, msg: Message) -> Message:
         """Capture a message in transit and forward it unchanged to the ECU."""
         self.captured_messages.append(msg)
@@ -32,19 +23,21 @@ class Attacker:
 
     def silent_capture(self, msg: Message) -> None:
         """
-        Capture a message WITHOUT forwarding it (jamming).
-        The ECU never receives it, so its nonce is never stored.
+        Capture a message without forwarding it to the ECU.
+        Simulates a jamming attack: the message is intercepted in transit
+        and never reaches the receiver.
         """
         self.captured_messages.append(msg)
 
-    # ---- replay strategies ----
+    # ---- Replay strategies ----
+
     def delayed_replay(self, index: int = 0) -> List[Message]:
-        """Replay a single captured message at the given index."""
+        """Replay a single previously captured message at the given index."""
         if index >= len(self.captured_messages):
             return []
         return [self.captured_messages[index]]
 
-    def multiple_replay(self, index: int = 0, count: int = 5) -> List[Message]:
+    def multiple_replay(self, index: int = 0, count: int = 3) -> List[Message]:
         """Replay the same captured message multiple times in succession."""
         if index >= len(self.captured_messages):
             return []
@@ -60,9 +53,7 @@ class Attacker:
             return []
         return [self.captured_messages[0]]
 
-    def replay_all(self) -> List[Message]:
-        """Replay every captured message (used by reset and rollback scenarios)."""
-        return list(self.captured_messages)
+    # ---- Utility ----
 
     def clear_captured(self) -> None:
         self.captured_messages.clear()

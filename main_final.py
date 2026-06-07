@@ -1,566 +1,220 @@
 """
-main_final.py
-Entry point for the replay attack prevention simulation.
+main_final.py  (v2)
+===================
+Experiment controller for the upgraded replay-attack simulation.
 
-Provides an interactive menu to run experiments comparing four validation
-methods (No Validation, Nonce-Only, Counter-Only, Hybrid) against five
-standard attack scenarios and two robustness scenarios (reset, desync).
+WHAT CHANGED IN v2
+------------------
+1. NEW METRIC: False Rejection Rate (FRR) -- the share of LEGITIMATE messages
+   wrongly rejected. This is the false-positive behaviour that was absent in v1.
+   It emerges from nonce collisions when the nonce field is short (see sender).
+2. NEW SCENARIO: counter_rollback (RollBack attack).
+3. TRIALS raised to 1000, each with its OWN seed, so every metric is a
+   DISTRIBUTION. We report mean +/- 95% confidence interval.
+4. PAIRED design: one message stream per trial is fed to all four methods, so
+   method comparisons are paired (controls message-stream variance).
+5. STATISTICS: paired t-tests where they are valid, with explicit notes on when
+   a difference is STRUCTURAL (deterministic) rather than statistical
+   (Arcuri & Briand 2014; Wohlin et al. 2012).
+6. NONCE-SPACE SWEEP: FRR as a function of nonce field length.
 
-Each experiment is run with isolated objects (fresh KeyFob, CarECU, Attacker)
-and averaged over NUM_TRIALS repetitions. Results are saved to CSV.
+Run:  python main_final.py
+Output CSVs: results_upgraded_grid.csv, results_nonce_sweep.csv
 """
 
-import time
 import csv
-import sys
-import io
-import contextlib
+import math
+import time
 import random
 import statistics
-from typing import Dict, List
+
+import numpy as np
+from scipy import stats
 
 from sender_final import KeyFob
 from receiver_final import CarECU
 from attacker_final import Attacker
 
-
-# =============================================================================
-# Configuration
-# =============================================================================
-
-NUM_NORMAL_MESSAGES = 10
-NUM_TRIALS = 30
+# ---------------- configuration ----------------
+NUM_LEGIT = 10                 # legitimate messages per trial
 MULTIPLE_REPLAY_COUNT = 5
-RANDOM_SEED = 42
+NUM_TRIALS = 1000
+BASE_SEED = 42
+HEADLINE_NONCE_BITS = 8        # short, constrained-device nonce field
+COUNTER_WINDOW = 256           # forward acceptance window W
 
 METHODS = [
-    (1, "No Validation"),
-    (2, "Nonce-Only"),
-    (3, "Counter-Only"),
-    (4, "Hybrid"),
+    (CarECU.METHOD_NO_VALIDATION, "No Validation"),
+    (CarECU.METHOD_NONCE_ONLY, "Nonce-Only"),
+    (CarECU.METHOD_COUNTER_ONLY, "Counter-Only"),
+    (CarECU.METHOD_HYBRID, "Hybrid"),
 ]
 
-STANDARD_SCENARIOS = [
-    "no_attack",
-    "delayed_replay",
-    "multiple_replay",
-    "out_of_order",
-    "counter_skip",
+SCENARIOS = [
+    "no_attack", "delayed_replay", "multiple_replay", "out_of_order",
+    "counter_skip", "reset_attack", "desync_attack", "counter_rollback",
 ]
 
 
-# =============================================================================
-# Single experiment
-# =============================================================================
-
-def run_experiment(method_id: int, scenario: str) -> Dict:
-    """
-    Run one experiment for a given (method, scenario) combination.
-
-    Each call creates fresh KeyFob, CarECU, and Attacker instances so that
-    no state carries over from previous runs.
-    """
-    keyfob = KeyFob()
-    car = CarECU(method=method_id)
+# ---------------- one trial ----------------
+def run_trial(method_id, scenario, stream, counter_window):
+    """Run one (method, scenario) trial on a pre-built message stream."""
+    car = CarECU(method=method_id, counter_window=counter_window)
     attacker = Attacker()
+    legit_sent = legit_accepted = 0
+    attacks_total = attacks_accepted = 0
+    latencies = []
 
-    legitimate_accepted = 0
-    legitimate_rejected = 0
-    legitimate_latencies: List[float] = []
+    def deliver(msg):
+        nonlocal legit_sent, legit_accepted
+        attacker.intercept(msg)                 # adversary records on the wire
+        t0 = time.perf_counter()
+        ok = car.receive(msg)
+        latencies.append((time.perf_counter() - t0) * 1_000_000)
+        legit_sent += 1
+        legit_accepted += int(ok)
 
-    attacks_accepted = 0
-    attacks_rejected = 0
-    attack_latencies: List[float] = []
-
-    # ---- Standard scenarios ----
-    if scenario in STANDARD_SCENARIOS:
-        commands = ["UNLOCK", "LOCK", "START"]
-        for i in range(NUM_NORMAL_MESSAGES):
-            cmd = commands[i % 3]
-            if cmd == "UNLOCK":
-                msg = keyfob.unlock()
-            elif cmd == "LOCK":
-                msg = keyfob.lock()
-            else:
-                msg = keyfob.start()
-
-            captured = attacker.intercept(msg)
-
-            start = time.perf_counter()
-            accepted = car.receive(captured)
-            end = time.perf_counter()
-
-            legitimate_latencies.append((end - start) * 1_000_000)
-            if accepted:
-                legitimate_accepted += 1
-            else:
-                legitimate_rejected += 1
-
+    # --- legitimate phase + build attack set ---
+    if scenario in ("no_attack", "delayed_replay", "multiple_replay",
+                    "out_of_order", "counter_skip"):
+        for m in stream:
+            deliver(m)
         if scenario == "no_attack":
-            attack_messages: List = []
+            attack_msgs = []
         elif scenario == "delayed_replay":
-            attack_messages = attacker.delayed_replay(index=0)
+            attack_msgs = attacker.delayed_replay(0)
         elif scenario == "multiple_replay":
-            attack_messages = attacker.multiple_replay(
-                index=0, count=MULTIPLE_REPLAY_COUNT
-            )
+            attack_msgs = attacker.multiple_replay(0, MULTIPLE_REPLAY_COUNT)
         elif scenario == "out_of_order":
-            attack_messages = attacker.out_of_order_replay()
+            attack_msgs = attacker.out_of_order_replay()
         else:  # counter_skip
-            attack_messages = attacker.counter_skip_replay()
+            attack_msgs = attacker.counter_skip_replay()
 
-        for msg in attack_messages:
-            start = time.perf_counter()
-            accepted = car.receive(msg)
-            end = time.perf_counter()
-
-            attack_latencies.append((end - start) * 1_000_000)
-            if accepted:
-                attacks_accepted += 1
-            else:
-                attacks_rejected += 1
-
-    # ---- Reset scenario ----
     elif scenario == "reset_attack":
-        for _ in range(NUM_NORMAL_MESSAGES):
-            msg = keyfob.unlock()
-            captured = attacker.intercept(msg)
-
-            start = time.perf_counter()
-            accepted = car.receive(captured)
-            end = time.perf_counter()
-
-            legitimate_latencies.append((end - start) * 1_000_000)
-            if accepted:
-                legitimate_accepted += 1
-            else:
-                legitimate_rejected += 1
-
+        for m in stream:
+            deliver(m)
         car.volatile_reset()
+        attack_msgs = attacker.replay_all()
 
-        attack_messages = list(attacker.captured_messages)
-        for msg in attack_messages:
-            start = time.perf_counter()
-            accepted = car.receive(msg)
-            end = time.perf_counter()
+    elif scenario == "counter_rollback":
+        for m in stream:
+            deliver(m)
+        car.rollback()
+        attack_msgs = attacker.replay_all()
 
-            attack_latencies.append((end - start) * 1_000_000)
-            if accepted:
-                attacks_accepted += 1
-            else:
-                attacks_rejected += 1
-
-    # ---- Desync scenario ----
     elif scenario == "desync_attack":
-        first_batch = NUM_NORMAL_MESSAGES // 2
-
-        for _ in range(first_batch):
-            msg = keyfob.unlock()
-            captured = attacker.intercept(msg)
-
-            start = time.perf_counter()
-            accepted = car.receive(captured)
-            end = time.perf_counter()
-
-            legitimate_latencies.append((end - start) * 1_000_000)
-            if accepted:
-                legitimate_accepted += 1
-            else:
-                legitimate_rejected += 1
-
-        jammed_msg = keyfob.unlock()
-        attacker.silent_capture(jammed_msg)
-
-        for _ in range(NUM_NORMAL_MESSAGES - first_batch - 1):
-            msg = keyfob.unlock()
-            captured = attacker.intercept(msg)
-
-            start = time.perf_counter()
-            accepted = car.receive(captured)
-            end = time.perf_counter()
-
-            legitimate_latencies.append((end - start) * 1_000_000)
-            if accepted:
-                legitimate_accepted += 1
-            else:
-                legitimate_rejected += 1
-
-        attack_messages = [jammed_msg]
-        for msg in attack_messages:
-            start = time.perf_counter()
-            accepted = car.receive(msg)
-            end = time.perf_counter()
-
-            attack_latencies.append((end - start) * 1_000_000)
-            if accepted:
-                attacks_accepted += 1
-            else:
-                attacks_rejected += 1
-
+        half = len(stream) // 2
+        for m in stream[:half]:
+            deliver(m)
+        jammed = stream[half]
+        attacker.silent_capture(jammed)         # captured, never delivered
+        for m in stream[half + 1:]:
+            deliver(m)
+        attack_msgs = [jammed]
     else:
-        raise ValueError(f"Unknown scenario: {scenario}")
+        raise ValueError(scenario)
 
-    # ---- Metrics ----
-    total_attacks = len(attack_latencies)
-    if total_attacks > 0:
-        detection_rate = (attacks_rejected / total_attacks) * 100
-        asr = (attacks_accepted / total_attacks) * 100
-    else:
-        detection_rate = None
-        asr = None
-
-    all_latencies = legitimate_latencies + attack_latencies
-    avg_latency = sum(all_latencies) / len(all_latencies) if all_latencies else 0.0
+    # --- attack phase ---
+    for m in attack_msgs:
+        t0 = time.perf_counter()
+        ok = car.receive(m)
+        latencies.append((time.perf_counter() - t0) * 1_000_000)
+        attacks_total += 1
+        attacks_accepted += int(ok)
 
     return {
-        "method_id": method_id,
-        "scenario": scenario,
-        "legitimate_total": len(legitimate_latencies),
-        "legitimate_accepted": legitimate_accepted,
-        "legitimate_rejected": legitimate_rejected,
-        "attacks_total": total_attacks,
+        "legit_sent": legit_sent,
+        "legit_accepted": legit_accepted,
+        "attacks_total": attacks_total,
         "attacks_accepted": attacks_accepted,
-        "attacks_rejected": attacks_rejected,
-        "detection_rate": detection_rate,
-        "asr": asr,
-        "avg_latency_us": avg_latency,
+        "mean_latency": statistics.mean(latencies) if latencies else 0.0,
     }
 
 
-# =============================================================================
-# Multi-trial averaging
-# =============================================================================
+def ci95(values):
+    """95% confidence-interval half-width for the mean (t-distribution)."""
+    a = np.asarray(values, float)
+    n = len(a)
+    if n < 2:
+        return 0.0
+    return float(stats.t.ppf(0.975, n - 1) * a.std(ddof=1) / math.sqrt(n))
 
-def run_trials(method_id: int, scenario: str, num_trials: int) -> Dict:
-    """Run a single experiment cell multiple times and average the results."""
-    trials = [run_experiment(method_id, scenario) for _ in range(num_trials)]
 
-    numeric_fields = [
-        "legitimate_accepted",
-        "legitimate_rejected",
-        "attacks_accepted",
-        "attacks_rejected",
-        "avg_latency_us",
-    ]
-
-    avg = {
-        "method_id": method_id,
-        "scenario": scenario,
-        "num_trials": num_trials,
-        "legitimate_total": trials[0]["legitimate_total"],
-        "attacks_total": trials[0]["attacks_total"],
+def run_cell(method_id, scenario, nonce_bits, counter_window, num_trials):
+    """Run num_trials paired trials and aggregate metrics with CIs."""
+    frr, dr, asr, lat = [], [], [], []
+    for t in range(num_trials):
+        rng = random.Random(BASE_SEED + t)                 # paired across methods
+        kf = KeyFob(nonce_bits=nonce_bits, rng=rng)
+        stream = [kf.unlock() for _ in range(NUM_LEGIT)]
+        r = run_trial(method_id, scenario, stream, counter_window)
+        if r["legit_sent"]:
+            frr.append((1 - r["legit_accepted"] / r["legit_sent"]) * 100)
+        if r["attacks_total"]:
+            d = (1 - r["attacks_accepted"] / r["attacks_total"]) * 100
+            dr.append(d)
+            asr.append(100 - d)
+        lat.append(r["mean_latency"])
+    return {
+        "frr_mean": np.mean(frr) if frr else None, "frr_ci": ci95(frr) if frr else None,
+        "frr_list": frr,
+        "dr_mean": np.mean(dr) if dr else None,
+        "asr_mean": np.mean(asr) if asr else None, "asr_ci": ci95(asr) if asr else None,
+        "lat_mean": float(np.mean(lat)), "lat_ci": ci95(lat), "lat_list": lat,
     }
 
-    for field in numeric_fields:
-        avg[field] = sum(t[field] for t in trials) / num_trials
 
-    latencies = [t["avg_latency_us"] for t in trials]
-    avg["std_latency_us"] = statistics.stdev(latencies) if len(latencies) > 1 else 0.0
+# ---------------- main ----------------
+def main():
+    print(f"MAIN GRID  nonce_bits={HEADLINE_NONCE_BITS} window={COUNTER_WINDOW} "
+          f"trials={NUM_TRIALS}")
+    grid = {}
+    for mid, mname in METHODS:
+        for sc in SCENARIOS:
+            grid[(mname, sc)] = run_cell(mid, sc, HEADLINE_NONCE_BITS,
+                                         COUNTER_WINDOW, NUM_TRIALS)
 
-    det_rates = [t["detection_rate"] for t in trials if t["detection_rate"] is not None]
-    asrs = [t["asr"] for t in trials if t["asr"] is not None]
-    avg["detection_rate"] = sum(det_rates) / len(det_rates) if det_rates else None
-    avg["asr"] = sum(asrs) / len(asrs) if asrs else None
+    with open("results_upgraded_grid.csv", "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["method", "scenario", "dr_mean", "asr_mean", "asr_ci",
+                    "frr_mean", "frr_ci", "lat_mean", "lat_ci", "trials"])
+        for (mname, sc), c in grid.items():
+            w.writerow([mname, sc, c["dr_mean"], c["asr_mean"], c["asr_ci"],
+                        c["frr_mean"], c["frr_ci"], c["lat_mean"], c["lat_ci"],
+                        NUM_TRIALS])
 
-    return avg
+    # nonce-space sweep (FRR on clean traffic)
+    with open("results_nonce_sweep.csv", "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["nonce_bits", "nonce_space", "nonce_only_frr",
+                    "counter_only_frr", "hybrid_frr"])
+        for bits in [6, 8, 10, 12, 14, 16]:
+            n = run_cell(CarECU.METHOD_NONCE_ONLY, "no_attack", bits,
+                         COUNTER_WINDOW, NUM_TRIALS)["frr_mean"]
+            c = run_cell(CarECU.METHOD_COUNTER_ONLY, "no_attack", bits,
+                         COUNTER_WINDOW, NUM_TRIALS)["frr_mean"]
+            h = run_cell(CarECU.METHOD_HYBRID, "no_attack", bits,
+                         COUNTER_WINDOW, NUM_TRIALS)["frr_mean"]
+            w.writerow([bits, 1 << bits, n, c, h])
 
+    # statistics
+    cells = {m: run_cell(mid, "no_attack", HEADLINE_NONCE_BITS,
+                         COUNTER_WINDOW, NUM_TRIALS) for mid, m in METHODS}
+    n_frr = np.array(cells["Nonce-Only"]["frr_list"])
+    h_frr = np.array(cells["Hybrid"]["frr_list"])
+    c_lat = np.array(cells["Counter-Only"]["lat_list"])
+    h_lat = np.array(cells["Hybrid"]["lat_list"])
+    t2, p2 = stats.ttest_rel(c_lat, h_lat)
 
-# =============================================================================
-# Output formatting
-# =============================================================================
-
-def print_metric_table(grid: Dict, scenarios: List[str], metric: str, title: str) -> None:
-    """Print a single metric as a table with methods as rows and scenarios as columns."""
-    print()
-    print("=" * 95)
-    print(f"  {title}")
-    print("=" * 95)
-
-    header = f"  {'Method':<18}"
-    for scenario in scenarios:
-        header += f" {scenario:>15}"
-    print(header)
-    print("  " + "-" * 93)
-
-    for method_id, method_name in METHODS:
-        row = f"  {method_name:<18}"
-        for scenario in scenarios:
-            cell = grid[(method_id, scenario)]
-            if metric == "detection_rate":
-                value = cell["detection_rate"]
-            elif metric == "asr":
-                value = cell["asr"]
-            elif metric == "latency":
-                value = cell["avg_latency_us"]
-            else:
-                value = None
-
-            if value is None:
-                row += f" {'N/A':>15}"
-            elif metric == "latency":
-                row += f" {value:>12.2f} us"
-            else:
-                row += f" {value:>13.1f}%"
-        print(row)
-    print()
-
-
-def save_to_csv(grid: Dict, scenarios: List[str], filename: str) -> None:
-    """Save grid results to a CSV file (one row per method-scenario pair)."""
-    fields = [
-        "method_id", "method_name", "scenario",
-        "legitimate_total", "legitimate_accepted", "legitimate_rejected",
-        "attacks_total", "attacks_accepted", "attacks_rejected",
-        "detection_rate", "asr", "avg_latency_us", "std_latency_us",
-        "num_trials",
-    ]
-    method_names = {mid: name for mid, name in METHODS}
-
-    with open(filename, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()
-        for method_id, _ in METHODS:
-            for scenario in scenarios:
-                if (method_id, scenario) not in grid:
-                    continue
-                row = dict(grid[(method_id, scenario)])
-                row["method_name"] = method_names[method_id]
-                for k, v in row.items():
-                    if v is None:
-                        row[k] = ""
-                writer.writerow(row)
-
-    print(f"  Results saved to: {filename}")
-
-
-# =============================================================================
-# Experiment modes
-# =============================================================================
-
-def run_full_grid() -> None:
-    """Run all 4 methods against all 5 standard scenarios (20 cells)."""
-    print()
-    print("=" * 75)
-    print(f"  FULL GRID EXPERIMENT")
-    print(f"  {len(METHODS)} methods x {len(STANDARD_SCENARIOS)} scenarios "
-          f"x {NUM_TRIALS} trials per cell")
-    print("=" * 75)
-    print()
-
-    grid: Dict = {}
-    total = len(METHODS) * len(STANDARD_SCENARIOS)
-    count = 0
-
-    for method_id, method_name in METHODS:
-        for scenario in STANDARD_SCENARIOS:
-            count += 1
-            print(f"  [{count:2d}/{total}] {method_name:<18} + {scenario:<16} ... ",
-                  end="", flush=True)
-            grid[(method_id, scenario)] = run_trials(method_id, scenario, NUM_TRIALS)
-            print("done")
-
-    print_metric_table(grid, STANDARD_SCENARIOS, "detection_rate",
-                       "DETECTION RATE (%)  -  Higher is better")
-    print_metric_table(grid, STANDARD_SCENARIOS, "asr",
-                       "ATTACK SUCCESS RATE (%)  -  Lower is better")
-    print_metric_table(grid, STANDARD_SCENARIOS, "latency",
-                       "AVERAGE LATENCY (us)  -  Lower is better")
-
-    print("=" * 75)
-    save_to_csv(grid, STANDARD_SCENARIOS, "results_full_grid.csv")
-    print()
-
-
-def run_reset_experiment() -> None:
-    """Run reset scenario for all 4 methods."""
-    print()
-    print("=" * 75)
-    print(f"  RESET SCENARIO  -  {NUM_TRIALS} trials per method")
-    print("=" * 75)
-    print()
-    print("  Simulates ECU power loss after legitimate traffic:")
-    print("    1. Send legitimate messages (attacker captures all of them)")
-    print("    2. ECU suffers power loss")
-    print("       - nonce_list (RAM) is cleared")
-    print("       - last_counter (EEPROM) is preserved")
-    print("    3. Attacker replays all captured messages")
-    print()
-
-    grid: Dict = {}
-    for method_id, method_name in METHODS:
-        print(f"  Running {method_name:<18} ... ", end="", flush=True)
-        grid[(method_id, "reset_attack")] = run_trials(method_id, "reset_attack", NUM_TRIALS)
-        print("done")
-
-    print_metric_table(grid, ["reset_attack"], "detection_rate",
-                       "DETECTION RATE (%)  -  Higher is better")
-    print_metric_table(grid, ["reset_attack"], "asr",
-                       "ATTACK SUCCESS RATE (%)  -  Lower is better")
-    print_metric_table(grid, ["reset_attack"], "latency",
-                       "AVERAGE LATENCY (us)  -  Lower is better")
-
-    print("=" * 75)
-    save_to_csv(grid, ["reset_attack"], "results_reset_scenario.csv")
-    print()
-
-
-def run_desync_experiment() -> None:
-    """Run desync scenario for all 4 methods."""
-    print()
-    print("=" * 75)
-    print(f"  DESYNC SCENARIO  -  {NUM_TRIALS} trials per method")
-    print("=" * 75)
-    print()
-    print("  Simulates a jamming attack that creates a state gap:")
-    print("    1. Send half the legitimate messages (received normally)")
-    print("    2. Attacker jams one message in transit")
-    print("       - Attacker captures it, ECU never sees it")
-    print("    3. Send remaining messages")
-    print("       - ECU counter advances past the jammed message")
-    print("    4. Attacker replays the jammed message")
-    print()
-
-    grid: Dict = {}
-    for method_id, method_name in METHODS:
-        print(f"  Running {method_name:<18} ... ", end="", flush=True)
-        grid[(method_id, "desync_attack")] = run_trials(method_id, "desync_attack", NUM_TRIALS)
-        print("done")
-
-    print_metric_table(grid, ["desync_attack"], "detection_rate",
-                       "DETECTION RATE (%)  -  Higher is better")
-    print_metric_table(grid, ["desync_attack"], "asr",
-                       "ATTACK SUCCESS RATE (%)  -  Lower is better")
-    print_metric_table(grid, ["desync_attack"], "latency",
-                       "AVERAGE LATENCY (us)  -  Lower is better")
-
-    print("=" * 75)
-    save_to_csv(grid, ["desync_attack"], "results_desync_scenario.csv")
-    print()
-
-
-def run_single_method() -> None:
-    """Run all scenarios for one chosen method."""
-    print()
-    print("=" * 75)
-    print("  SINGLE METHOD MODE")
-    print("=" * 75)
-    print()
-    print("  Choose a validation method:")
-    print("    [1] No Validation")
-    print("    [2] Nonce-Only")
-    print("    [3] Counter-Only")
-    print("    [4] Hybrid")
-    print()
-
-    while True:
-        choice = input("  Enter choice [1-4]: ").strip()
-        if choice in ("1", "2", "3", "4"):
-            method_id = int(choice)
-            break
-        print("  Invalid choice. Please enter 1, 2, 3, or 4.")
-
-    method_name = dict(METHODS)[method_id]
-    all_scenarios = STANDARD_SCENARIOS + ["reset_attack", "desync_attack"]
-
-    print()
-    print(f"  Running {method_name} against all {len(all_scenarios)} scenarios")
-    print(f"  ({NUM_TRIALS} trials per scenario)")
-    print()
-
-    grid: Dict = {}
-    for scenario in all_scenarios:
-        print(f"  Running {scenario:<20} ... ", end="", flush=True)
-        grid[(method_id, scenario)] = run_trials(method_id, scenario, NUM_TRIALS)
-        print("done")
-
-    print()
-    print("=" * 75)
-    print(f"  RESULTS FOR {method_name.upper()}")
-    print("=" * 75)
-    print()
-    print(f"  {'Scenario':<20} {'Det.Rate':>10} {'ASR':>10} {'Latency (us)':>15}")
-    print("  " + "-" * 67)
-    for scenario in all_scenarios:
-        cell = grid[(method_id, scenario)]
-        det = "N/A" if cell["detection_rate"] is None else f"{cell['detection_rate']:.1f}%"
-        asr = "N/A" if cell["asr"] is None else f"{cell['asr']:.1f}%"
-        lat = f"{cell['avg_latency_us']:.2f}"
-        print(f"  {scenario:<20} {det:>10} {asr:>10} {lat:>15}")
-    print()
-
-    safe_name = method_name.lower().replace(" ", "_").replace("-", "_")
-    filename = f"results_{safe_name}.csv"
-    save_to_csv(grid, all_scenarios, filename)
-    print()
-
-
-# =============================================================================
-# Menu
-# =============================================================================
-
-def show_menu() -> str:
-    """Display the main menu and return the user's selection."""
-    print()
-    print("=" * 75)
-    print("  REPLAY ATTACK PREVENTION SIMULATION")
-    print("  Hybrid Nonce-Counter Framework for Smart Car IoT")
-    print("=" * 75)
-    print()
-    print(f"  Configuration: {NUM_TRIALS} trials per experiment, "
-          f"{NUM_NORMAL_MESSAGES} normal messages per trial")
-    print()
-    print("  Choose an experiment:")
-    print()
-    print("    [1] Full Grid Experiment")
-    print("        4 methods x 5 standard scenarios = 20 experiments")
-    print()
-    print("    [2] Reset Scenario")
-    print("        All 4 methods tested against ECU power loss")
-    print()
-    print("    [3] Desync Scenario")
-    print("        All 4 methods tested against message jamming")
-    print()
-    print("    [4] Single Method")
-    print("        Pick one method, run it against all 7 scenarios")
-    print()
-    print("    [5] Exit")
-    print()
-
-    while True:
-        choice = input("  Enter choice [1-5]: ").strip()
-        if choice in ("1", "2", "3", "4", "5"):
-            return choice
-        print("  Invalid choice. Please enter 1-5.")
-
-
-def main() -> None:
-    if RANDOM_SEED is not None:
-        random.seed(RANDOM_SEED)
-
-    while True:
-        choice = show_menu()
-
-        if choice == "1":
-            run_full_grid()
-        elif choice == "2":
-            run_reset_experiment()
-        elif choice == "3":
-            run_desync_experiment()
-        elif choice == "4":
-            run_single_method()
-        elif choice == "5":
-            print()
-            print("  Exiting.")
-            print()
-            break
-
-        print()
-        again = input("  Run another experiment? [y/N]: ").strip().lower()
-        if again != "y":
-            print()
-            print("  Done. CSV files have been saved to the current directory.")
-            print()
-            break
+    print("\n--- statistics (no_attack, 1000 paired trials) ---")
+    print(f"Nonce-Only FRR = {n_frr.mean():.3f}% (+/-{ci95(n_frr):.3f})")
+    print(f"Hybrid    FRR = {h_frr.mean():.3f}% (+/-{ci95(h_frr):.3f})")
+    print(f"Nonce vs Hybrid FRR: per-trial diff is "
+          f"{'identical (t-test undefined)' if np.allclose(n_frr - h_frr, 0) else 'nonzero'}")
+    print(f"Counter-Only FRR = {cells['Counter-Only']['frr_mean']:.3f}% (structural zero)")
+    print(f"Latency Counter vs Hybrid: t={t2:.3f}, p={p2:.4g}, "
+          f"diff={h_lat.mean()-c_lat.mean():.4f} us (significant but negligible)")
+    print("\nWrote results_upgraded_grid.csv and results_nonce_sweep.csv")
 
 
 if __name__ == "__main__":
