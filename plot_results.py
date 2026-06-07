@@ -14,11 +14,17 @@ Output: five PNGs ->
 Requirements: matplotlib, numpy
 """
 
+import os
 import csv
+import sys
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+# Always read CSVs from and write PNGs to THIS script's folder, regardless of
+# the terminal's current working directory.
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 COLOURS = {
     "No Validation": "#9aa0a6",
@@ -35,7 +41,15 @@ def f(x):
 
 
 def load(name):
-    with open(name) as fh:
+    path = os.path.join(HERE, name)
+    if not os.path.exists(path):
+        print(f"ERROR: cannot find {name} in:\n  {HERE}\n")
+        print("Generate the CSVs first by running the simulation, e.g.:")
+        print("  python main_final.py --all")
+        print("(or run the menu and choose [8] Run Everything, "
+              "or [1] then [6]).")
+        sys.exit(1)
+    with open(path) as fh:
         return list(csv.DictReader(fh))
 
 
@@ -80,7 +94,7 @@ ax.legend(ncol=4, loc="upper center", frameon=False, bbox_to_anchor=(0.5, -0.13)
 for s in ("top", "right"):
     ax.spines[s].set_visible(False)
 ax.grid(axis="y", linestyle=":", alpha=0.5)
-fig.tight_layout(); fig.savefig("fig1_asr_all_v2.png", dpi=200, bbox_inches="tight")
+fig.tight_layout(); fig.savefig(os.path.join(HERE, "fig1_asr_all_v2.png"), dpi=200, bbox_inches="tight")
 plt.close(fig)
 
 
@@ -112,7 +126,7 @@ ax.legend(frameon=False, loc="upper right")
 for s in ("top", "right"):
     ax.spines[s].set_visible(False)
 ax.grid(axis="y", linestyle=":", alpha=0.5)
-fig.tight_layout(); fig.savefig("fig2_frr_vs_nonce.png", dpi=200, bbox_inches="tight")
+fig.tight_layout(); fig.savefig(os.path.join(HERE, "fig2_frr_vs_nonce.png"), dpi=200, bbox_inches="tight")
 plt.close(fig)
 
 
@@ -135,7 +149,7 @@ ax.set_title("False Rejection Rate on Clean Traffic (8-bit nonce, 1000 trials)\n
 for s in ("top", "right"):
     ax.spines[s].set_visible(False)
 ax.grid(axis="y", linestyle=":", alpha=0.5)
-fig.tight_layout(); fig.savefig("fig3_frr_by_method.png", dpi=200, bbox_inches="tight")
+fig.tight_layout(); fig.savefig(os.path.join(HERE, "fig3_frr_by_method.png"), dpi=200, bbox_inches="tight")
 plt.close(fig)
 
 
@@ -175,7 +189,7 @@ ax.set_title("Mean Per-Message Validation Latency by Method\n"
 for s in ("top", "right"):
     ax.spines[s].set_visible(False)
 ax.grid(axis="y", linestyle=":", alpha=0.5)
-fig.tight_layout(); fig.savefig("fig4_latency_v2.png", dpi=200, bbox_inches="tight")
+fig.tight_layout(); fig.savefig(os.path.join(HERE, "fig4_latency_v2.png"), dpi=200, bbox_inches="tight")
 plt.close(fig)
 
 
@@ -197,7 +211,7 @@ ax.set_title("Security Capability by Attack Coverage\n"
 for s in ("top", "right"):
     ax.spines[s].set_visible(False)
 ax.grid(axis="y", linestyle=":", alpha=0.5)
-fig.tight_layout(); fig.savefig("fig5_capability_v2.png", dpi=200, bbox_inches="tight")
+fig.tight_layout(); fig.savefig(os.path.join(HERE, "fig5_capability_v2.png"), dpi=200, bbox_inches="tight")
 plt.close(fig)
 
-print("Generated 5 figures.")
+print(f"Generated 5 figures in:\n  {HERE}")

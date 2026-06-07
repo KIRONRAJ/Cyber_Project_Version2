@@ -30,6 +30,7 @@ Run:
 Output CSVs: results_upgraded_grid.csv, results_nonce_sweep.csv
 """
 
+import os
 import csv
 import sys
 import math
@@ -40,6 +41,15 @@ import statistics
 from sender_final import KeyFob
 from receiver_final import CarECU
 from attacker_final import Attacker
+
+# ---------------- output location ----------------
+# Always write the CSVs next to THIS script, no matter what folder you run
+# from. This is the fix for "the CSV files are not generating": with a bare
+# relative name, Python writes to the terminal's current working directory,
+# which is often not the script's folder.
+HERE = os.path.dirname(os.path.abspath(__file__))
+GRID_CSV = os.path.join(HERE, "results_upgraded_grid.csv")
+SWEEP_CSV = os.path.join(HERE, "results_nonce_sweep.csv")
 
 # ---------------- configuration ----------------
 NUM_LEGIT = 10                 # legitimate messages per trial
@@ -235,7 +245,7 @@ def print_full_grid(grid):
         hr()
 
 
-def write_grid_csv(grid, path="results_upgraded_grid.csv"):
+def write_grid_csv(grid, path=GRID_CSV):
     with open(path, "w", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(["method", "scenario", "dr_mean", "asr_mean", "asr_ci",
@@ -330,13 +340,13 @@ def experiment_sweep():
     for bits, space, n, c, h in rows:
         print(f" {bits:>5}{space:>9}{f(n):>13}{f(c):>14}{f(h):>13}")
     hr()
-    with open("results_nonce_sweep.csv", "w", newline="") as fh:
+    with open(SWEEP_CSV, "w", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(["nonce_bits", "nonce_space", "nonce_only_frr",
                     "counter_only_frr", "hybrid_frr"])
         for row in rows:
             w.writerow(row)
-    print(" -> wrote results_nonce_sweep.csv")
+    print(f" -> wrote {SWEEP_CSV}")
 
 
 # =====================================================================
@@ -421,6 +431,9 @@ def show_menu():
     print("   [7] Statistics           paired t-tests + structural notes")
     print("   [8] Run Everything       grid + sweep + stats, write both CSVs")
     print("   [9] Exit")
+    print()
+    print(" Tip: plotting needs BOTH CSVs. Choose [8] to generate them in one go,")
+    print("      or run [1] and [6]. The CSVs are saved next to this script.")
     print()
     while True:
         choice = input(" Enter choice [1-9]: ").strip()
