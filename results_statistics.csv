@@ -1,0 +1,4 @@
+comparison,metric,method_a,mean_a,method_b,mean_b,test,statistic,df,result,note
+Nonce-Only vs Hybrid,FRR(%),Nonce-Only,1.9600,Hybrid,1.9600,paired t-test,undefined,999,identical_by_construction,per-trial difference is exactly zero
+Counter-Only vs Hybrid,Latency(us),Counter-Only,0.2736,Hybrid,0.3530,paired t-test,27.4919,999,p<0.001,significant but negligible (~0.0795 us)
+Counter-Only vs Hybrid,FRR(%),Counter-Only,0.0000,Hybrid,1.9600,structural,n/a,,structural_zero,Counter-Only uses no nonce; cannot false-reject

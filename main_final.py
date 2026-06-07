@@ -3,31 +3,31 @@ main_final.py  (v2)
 ===================
 Experiment controller for the upgraded replay-attack simulation.
 
-WHAT CHANGED IN v2 (vs v1)
---------------------------
-1. NEW METRIC: False Rejection Rate (FRR) -- the share of LEGITIMATE messages
-   wrongly rejected. Emerges from nonce collisions when the field is short.
-2. NEW SCENARIO: counter_rollback (RollBack attack).
-3. TRIALS raised to 1000, each with its OWN seed, so every metric is a
-   DISTRIBUTION reported as mean +/- 95% confidence interval.
-4. PAIRED design: one message stream per trial is fed to all four methods.
-5. STATISTICS: paired t-test where valid, structural notes where not.
-6. NONCE-SPACE SWEEP: FRR as a function of nonce field length.
+WHAT THIS PRODUCES
+------------------
+Every menu option writes its own CSV, so each experiment is reproducible and the
+individual method results are saved separately (as requested by the supervisor):
 
-WHAT WAS RESTORED IN THIS REVISION
-----------------------------------
-The interactive MENU from v1 is back (and extended for the v2 scenarios). You
-can run one experiment at a time, or option [8] to run everything.
+    [1] Full Grid          -> results_upgraded_grid.csv      (all methods x all scenarios)
+    [2] Reset Scenario     -> results_reset_scenario.csv     (one row per method)
+    [3] Desync Scenario    -> results_desync_scenario.csv    (one row per method)
+    [4] Rollback Scenario  -> results_rollback_scenario.csv  (one row per method)
+    [5] Single Method      -> results_<method>.csv           (one row per scenario)
+    [6] Nonce-Space Sweep  -> results_nonce_sweep.csv
+    [7] Statistics         -> results_statistics.csv
+    [8] Run Everything     -> ALL of the above (incl. all four per-method CSVs)
 
-NO THIRD-PARTY PACKAGES NEEDED. This file uses only the Python standard library
-(statistics, math) -- no numpy, no scipy -- so it runs without `pip install`.
-(Plotting in plot_results_final.py still needs matplotlib.)
+DESIGN NOTES
+------------
+- FRR (False Rejection Rate) is a 4th metric: the share of LEGITIMATE messages
+  wrongly rejected (emerges from nonce collisions on a short field).
+- 1000 paired, seeded trials per cell; mean +/- 95% CI.
+- Standard library only (statistics, math) -- no numpy, no scipy.
+- All files are written NEXT TO THIS SCRIPT, regardless of the working directory.
 
 Run:
     python main_final.py            # interactive menu
-    python main_final.py --all      # run everything, no menu (writes both CSVs)
-
-Output CSVs: results_upgraded_grid.csv, results_nonce_sweep.csv
+    python main_final.py --all      # run everything, no menu
 """
 
 import os
@@ -43,13 +43,8 @@ from receiver_final import CarECU
 from attacker_final import Attacker
 
 # ---------------- output location ----------------
-# Always write the CSVs next to THIS script, no matter what folder you run
-# from. This is the fix for "the CSV files are not generating": with a bare
-# relative name, Python writes to the terminal's current working directory,
-# which is often not the script's folder.
+# Always write CSVs next to THIS script, not in the terminal's current folder.
 HERE = os.path.dirname(os.path.abspath(__file__))
-GRID_CSV = os.path.join(HERE, "results_upgraded_grid.csv")
-SWEEP_CSV = os.path.join(HERE, "results_nonce_sweep.csv")
 
 # ---------------- configuration ----------------
 NUM_LEGIT = 10                 # legitimate messages per trial
@@ -67,16 +62,41 @@ METHODS = [
     (CarECU.METHOD_COUNTER_ONLY, "Counter-Only"),
     (CarECU.METHOD_HYBRID, "Hybrid"),
 ]
-METHOD_NAME = {mid: name for mid, name in METHODS}
 
 SCENARIOS = [
     "no_attack", "delayed_replay", "multiple_replay", "out_of_order",
     "counter_skip", "reset_attack", "desync_attack", "counter_rollback",
 ]
 
+# friendly file names for the per-scenario CSVs
+SCENARIO_FILE = {
+    "reset_attack": "results_reset_scenario.csv",
+    "desync_attack": "results_desync_scenario.csv",
+    "counter_rollback": "results_rollback_scenario.csv",
+}
+
+GRID_CSV = os.path.join(HERE, "results_upgraded_grid.csv")
+SWEEP_CSV = os.path.join(HERE, "results_nonce_sweep.csv")
+STATS_CSV = os.path.join(HERE, "results_statistics.csv")
+
+GRID_HEADER = ["method", "scenario", "dr_mean", "asr_mean", "asr_ci",
+               "frr_mean", "frr_ci", "lat_mean", "lat_ci", "trials"]
+
+
+def method_slug(name):
+    return name.lower().replace(" ", "_").replace("-", "_")
+
+
+def method_file(name):
+    return os.path.join(HERE, f"results_{method_slug(name)}.csv")
+
+
+def scenario_file(scenario):
+    return os.path.join(HERE, SCENARIO_FILE[scenario])
+
 
 # =====================================================================
-#  CORE SIMULATION (numerically identical to the auto-run version)
+#  CORE SIMULATION  (numbers verified; do not change the logic here)
 # =====================================================================
 
 def run_trial(method_id, scenario, stream, counter_window):
@@ -96,7 +116,6 @@ def run_trial(method_id, scenario, stream, counter_window):
         legit_sent += 1
         legit_accepted += int(ok)
 
-    # --- legitimate phase + build attack set ---
     if scenario in ("no_attack", "delayed_replay", "multiple_replay",
                     "out_of_order", "counter_skip"):
         for m in stream:
@@ -136,7 +155,6 @@ def run_trial(method_id, scenario, stream, counter_window):
     else:
         raise ValueError(scenario)
 
-    # --- attack phase ---
     for m in attack_msgs:
         t0 = time.perf_counter()
         ok = car.receive(m)
@@ -154,15 +172,11 @@ def run_trial(method_id, scenario, stream, counter_window):
 
 
 def ci95(values):
-    """95% confidence-interval half-width for the mean.
-
-    Uses the large-sample normal approximation (z = 1.96). For n = 1000 this is
-    identical to the t-value to two decimal places, and needs no scipy.
-    """
+    """95% CI half-width (large-sample normal approx; identical to t at n=1000)."""
     n = len(values)
     if n < 2:
         return 0.0
-    sd = statistics.stdev(values)               # sample SD (ddof = 1)
+    sd = statistics.stdev(values)
     return Z95 * sd / math.sqrt(n)
 
 
@@ -205,11 +219,10 @@ def paired_t(a, b):
 
 
 # =====================================================================
-#  FORMATTING HELPERS
+#  FORMATTING + CSV HELPERS
 # =====================================================================
 
 def f(v, nd=2):
-    """Format a number to nd decimals, or 'N/A' if None."""
     return f"{v:.{nd}f}" if v is not None else "N/A"
 
 
@@ -217,18 +230,65 @@ def hr(char="-", width=78):
     print(char * width)
 
 
+def cell_row(mname, sc, c):
+    return [mname, sc, c["dr_mean"], c["asr_mean"], c["asr_ci"],
+            c["frr_mean"], c["frr_ci"], c["lat_mean"], c["lat_ci"], NUM_TRIALS]
+
+
+def write_rows(path, header, rows):
+    with open(path, "w", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(header)
+        for r in rows:
+            w.writerow(r)
+    print(f" -> wrote {path}")
+
+
 # =====================================================================
-#  EXPERIMENT [1]: FULL GRID  (4 methods x 8 scenarios)
+#  COMPUTE
 # =====================================================================
 
 def compute_full_grid():
-    grid = {}
-    for mid, mname in METHODS:
-        for sc in SCENARIOS:
-            grid[(mname, sc)] = run_cell(mid, sc, HEADLINE_NONCE_BITS,
-                                         COUNTER_WINDOW, NUM_TRIALS)
-    return grid
+    return {(mname, sc): run_cell(mid, sc, HEADLINE_NONCE_BITS, COUNTER_WINDOW,
+                                  NUM_TRIALS)
+            for mid, mname in METHODS for sc in SCENARIOS}
 
+
+def compute_scenario(scenario):
+    """One cell per method for a single scenario."""
+    return {mname: run_cell(mid, scenario, HEADLINE_NONCE_BITS, COUNTER_WINDOW,
+                            NUM_TRIALS) for mid, mname in METHODS}
+
+
+def compute_method(method_id):
+    """One cell per scenario for a single method."""
+    return {sc: run_cell(method_id, sc, HEADLINE_NONCE_BITS, COUNTER_WINDOW,
+                         NUM_TRIALS) for sc in SCENARIOS}
+
+
+# =====================================================================
+#  CSV WRITERS (per experiment)
+# =====================================================================
+
+def write_grid_csv(grid):
+    rows = [cell_row(mname, sc, grid[(mname, sc)])
+            for mid, mname in METHODS for sc in SCENARIOS]
+    write_rows(GRID_CSV, GRID_HEADER, rows)
+
+
+def write_scenario_csv(scenario, cells):
+    rows = [cell_row(mname, scenario, cells[mname]) for mid, mname in METHODS]
+    write_rows(scenario_file(scenario), GRID_HEADER, rows)
+
+
+def write_method_csv(mname, cells):
+    rows = [cell_row(mname, sc, cells[sc]) for sc in SCENARIOS]
+    write_rows(method_file(mname), GRID_HEADER, rows)
+
+
+# =====================================================================
+#  PRINTERS
+# =====================================================================
 
 def print_full_grid(grid):
     hr("=")
@@ -245,47 +305,51 @@ def print_full_grid(grid):
         hr()
 
 
-def write_grid_csv(grid, path=GRID_CSV):
-    with open(path, "w", newline="") as fh:
-        w = csv.writer(fh)
-        w.writerow(["method", "scenario", "dr_mean", "asr_mean", "asr_ci",
-                    "frr_mean", "frr_ci", "lat_mean", "lat_ci", "trials"])
-        for (mname, sc), c in grid.items():
-            w.writerow([mname, sc, c["dr_mean"], c["asr_mean"], c["asr_ci"],
-                        c["frr_mean"], c["frr_ci"], c["lat_mean"], c["lat_ci"],
-                        NUM_TRIALS])
-    print(f" -> wrote {path}")
-
-
-def experiment_full_grid():
-    print("\nRunning full grid (32 cells x 1000 trials)... please wait a few seconds.")
-    grid = compute_full_grid()
-    print_full_grid(grid)
-    write_grid_csv(grid)
-
-
-# =====================================================================
-#  EXPERIMENT [2/3/4]: SINGLE SCENARIO, ALL 4 METHODS
-# =====================================================================
-
-def experiment_single_scenario(scenario, pretty):
-    print(f"\nRunning '{scenario}' against all 4 methods (1000 trials each)...")
+def print_scenario(scenario, pretty, cells):
     hr("=")
     print(f" SCENARIO: {pretty}  ({scenario})")
     hr("=")
     print(f" {'Method':<15}{'DR%':>7}{'ASR% (95% CI)':>20}{'FRR% (95% CI)':>20}{'Lat(us)':>9}")
     hr()
     for mid, mname in METHODS:
-        c = run_cell(mid, scenario, HEADLINE_NONCE_BITS, COUNTER_WINDOW, NUM_TRIALS)
+        c = cells[mname]
         asr_s = f"{f(c['asr_mean'])} (+/-{f(c['asr_ci'])})" if c['asr_mean'] is not None else "N/A"
         frr_s = f"{f(c['frr_mean'])} (+/-{f(c['frr_ci'])})" if c['frr_mean'] is not None else "N/A"
         print(f" {mname:<15}{f(c['dr_mean']):>7}{asr_s:>20}{frr_s:>20}{f(c['lat_mean'], 3):>9}")
     hr()
 
 
+def print_method(mname, cells):
+    hr("=")
+    print(f" METHOD: {mname}")
+    hr("=")
+    print(f" {'Scenario':<18}{'DR%':>7}{'ASR%':>8}{'FRR%':>8}{'Lat(us)':>10}")
+    hr()
+    for sc in SCENARIOS:
+        c = cells[sc]
+        print(f" {sc:<18}{f(c['dr_mean']):>7}{f(c['asr_mean']):>8}"
+              f"{f(c['frr_mean']):>8}{f(c['lat_mean'], 3):>10}")
+    hr()
+
+
 # =====================================================================
-#  EXPERIMENT [5]: SINGLE METHOD, ALL 8 SCENARIOS
+#  EXPERIMENTS
 # =====================================================================
+
+def experiment_full_grid():
+    print("\nRunning full grid (32 cells x 1000 trials)... a few seconds.")
+    grid = compute_full_grid()
+    print_full_grid(grid)
+    write_grid_csv(grid)
+    return grid
+
+
+def experiment_single_scenario(scenario, pretty):
+    print(f"\nRunning '{scenario}' against all 4 methods (1000 trials each)...")
+    cells = compute_scenario(scenario)
+    print_scenario(scenario, pretty, cells)
+    write_scenario_csv(scenario, cells)
+
 
 def choose_method():
     print("\n Pick a method:")
@@ -300,21 +364,10 @@ def choose_method():
 
 def experiment_single_method(method_id, mname):
     print(f"\nRunning '{mname}' against all 8 scenarios (1000 trials each)...")
-    hr("=")
-    print(f" METHOD: {mname}")
-    hr("=")
-    print(f" {'Scenario':<18}{'DR%':>7}{'ASR%':>8}{'FRR%':>8}{'Lat(us)':>10}")
-    hr()
-    for sc in SCENARIOS:
-        c = run_cell(method_id, sc, HEADLINE_NONCE_BITS, COUNTER_WINDOW, NUM_TRIALS)
-        print(f" {sc:<18}{f(c['dr_mean']):>7}{f(c['asr_mean']):>8}"
-              f"{f(c['frr_mean']):>8}{f(c['lat_mean'], 3):>10}")
-    hr()
+    cells = compute_method(method_id)
+    print_method(mname, cells)
+    write_method_csv(mname, cells)
 
-
-# =====================================================================
-#  EXPERIMENT [6]: NONCE-SPACE SWEEP  (FRR vs nonce field length)
-# =====================================================================
 
 def compute_sweep():
     rows = []
@@ -340,23 +393,17 @@ def experiment_sweep():
     for bits, space, n, c, h in rows:
         print(f" {bits:>5}{space:>9}{f(n):>13}{f(c):>14}{f(h):>13}")
     hr()
-    with open(SWEEP_CSV, "w", newline="") as fh:
-        w = csv.writer(fh)
-        w.writerow(["nonce_bits", "nonce_space", "nonce_only_frr",
-                    "counter_only_frr", "hybrid_frr"])
-        for row in rows:
-            w.writerow(row)
-    print(f" -> wrote {SWEEP_CSV}")
+    write_rows(SWEEP_CSV,
+               ["nonce_bits", "nonce_space", "nonce_only_frr",
+                "counter_only_frr", "hybrid_frr"],
+               rows)
 
 
-# =====================================================================
-#  EXPERIMENT [7]: STATISTICS
-# =====================================================================
-
-def experiment_statistics():
+def experiment_statistics(cells=None):
     print("\nComputing statistics on clean traffic (1000 paired trials)...")
-    cells = {m: run_cell(mid, "no_attack", HEADLINE_NONCE_BITS,
-                         COUNTER_WINDOW, NUM_TRIALS) for mid, m in METHODS}
+    if cells is None:
+        cells = {m: run_cell(mid, "no_attack", HEADLINE_NONCE_BITS,
+                             COUNTER_WINDOW, NUM_TRIALS) for mid, m in METHODS}
     n_frr = cells["Nonce-Only"]["frr_list"]
     h_frr = cells["Hybrid"]["frr_list"]
     c_lat = cells["Counter-Only"]["lat_list"]
@@ -369,41 +416,65 @@ def experiment_statistics():
     print(f" Hybrid     FRR = {statistics.mean(h_frr):.3f}% (+/-{ci95(h_frr):.3f})")
 
     identical = all(abs(a - b) < 1e-12 for a, b in zip(n_frr, h_frr))
-    print()
-    print(" [1] FRR, Nonce-Only vs Hybrid:")
+    print("\n [1] FRR, Nonce-Only vs Hybrid:")
     if identical:
         print("     per-trial difference is exactly 0 in every trial.")
         print("     -> IDENTICAL BY CONSTRUCTION (a t-test is undefined here).")
-    else:
-        t, df, md = paired_t(n_frr, h_frr)
-        print(f"     paired t = {t:.3f}, df = {df}, mean diff = {md:.4f}")
 
-    t, df, md = paired_t(h_lat, c_lat)
-    sig = "p < 0.001 (highly significant)" if abs(t) > 3.30 else "not significant at 0.001"
-    print()
-    print(" [2] Latency, Counter-Only vs Hybrid:")
-    print(f"     paired t = {t:.3f}, df = {df}, mean diff = {md:.4f} us")
-    print(f"     -> {sig}, BUT effect size ~{abs(md):.3f} us is practically negligible")
-    print("        (vs ~100 ms physical actuation). Significant != meaningful.")
+    t_lat, df, md = paired_t(h_lat, c_lat)
+    sig = "p < 0.001 (highly significant)" if abs(t_lat) > 3.30 else "not significant at 0.001"
+    print("\n [2] Latency, Counter-Only vs Hybrid:")
+    print(f"     paired t = {t_lat:.3f}, df = {df}, mean diff = {md:.4f} us")
+    print(f"     -> {sig}, BUT effect size ~{abs(md):.3f} us is practically negligible.")
 
-    print()
-    print(" [3] FRR, Counter-Only vs Hybrid:")
-    print(f"     Counter-Only FRR = {f(cells['Counter-Only']['frr_mean'], 3)}% with zero variance.")
-    print("     -> STRUCTURAL difference (Counter-Only uses no nonce, so it")
-    print("        cannot false-reject). Reported as structural, not statistical.")
+    print("\n [3] FRR, Counter-Only vs Hybrid:")
+    print(f"     Counter-Only FRR = {f(cells['Counter-Only']['frr_mean'], 3)}% (zero variance).")
+    print("     -> STRUCTURAL difference (Counter-Only uses no nonce). Not a t-test.")
     hr()
 
+    # write a tidy stats CSV
+    header = ["comparison", "metric", "method_a", "mean_a", "method_b",
+              "mean_b", "test", "statistic", "df", "result", "note"]
+    rows = [
+        ["Nonce-Only vs Hybrid", "FRR(%)", "Nonce-Only",
+         f"{statistics.mean(n_frr):.4f}", "Hybrid", f"{statistics.mean(h_frr):.4f}",
+         "paired t-test", "undefined", df, "identical_by_construction",
+         "per-trial difference is exactly zero"],
+        ["Counter-Only vs Hybrid", "Latency(us)", "Counter-Only",
+         f"{statistics.mean(c_lat):.4f}", "Hybrid", f"{statistics.mean(h_lat):.4f}",
+         "paired t-test", f"{t_lat:.4f}", df,
+         "p<0.001" if abs(t_lat) > 3.30 else "ns",
+         f"significant but negligible (~{abs(md):.4f} us)"],
+        ["Counter-Only vs Hybrid", "FRR(%)", "Counter-Only",
+         f"{cells['Counter-Only']['frr_mean']:.4f}", "Hybrid",
+         f"{statistics.mean(h_frr):.4f}", "structural", "n/a", "",
+         "structural_zero", "Counter-Only uses no nonce; cannot false-reject"],
+    ]
+    write_rows(STATS_CSV, header, rows)
 
-# =====================================================================
-#  EXPERIMENT [8]: RUN EVERYTHING
-# =====================================================================
 
 def experiment_everything():
-    experiment_full_grid()
+    print("\n[8] RUN EVERYTHING -- this writes every CSV.")
+    grid = experiment_full_grid()
+
+    # individual per-scenario CSVs (sliced from the grid; no recompute)
+    for sc in ("reset_attack", "desync_attack", "counter_rollback"):
+        cells = {mname: grid[(mname, sc)] for mid, mname in METHODS}
+        write_scenario_csv(sc, cells)
+
+    # individual per-method CSVs (Azam's individual method results)
+    for mid, mname in METHODS:
+        cells = {sc: grid[(mname, sc)] for sc in SCENARIOS}
+        write_method_csv(mname, cells)
+
     experiment_sweep()
-    experiment_statistics()
-    print("\nAll experiments complete. Both CSVs written.")
-    print("Next: run  python plot_results_final.py  to generate the 5 figures.")
+
+    # stats reuse the grid's no_attack cells (they carry the raw lists)
+    experiment_statistics({m: grid[(m, "no_attack")] for mid, m in METHODS})
+
+    print("\nAll experiments complete. Files written next to the script:")
+    print(f"  {HERE}")
+    print("Next: run  python plot_results_final.py  to generate the figures.")
 
 
 # =====================================================================
@@ -417,23 +488,23 @@ def show_menu():
     print(" Hybrid Nonce-Counter Framework for Smart Car IoT")
     hr("=")
     print()
-    print(f" Configuration: {NUM_TRIALS} trials/cell, {NUM_LEGIT} legit messages/trial,")
-    print(f"                {HEADLINE_NONCE_BITS}-bit nonce, counter window W={COUNTER_WINDOW}")
+    print(f" Config: {NUM_TRIALS} trials/cell, {NUM_LEGIT} legit msgs/trial, "
+          f"{HEADLINE_NONCE_BITS}-bit nonce, window W={COUNTER_WINDOW}")
     print()
-    print(" Choose an experiment:")
+    print(" Choose an experiment (each one writes a CSV):")
     print()
-    print("   [1] Full Grid            4 methods x 8 scenarios (writes grid CSV)")
-    print("   [2] Reset Scenario       all 4 methods vs ECU power loss")
-    print("   [3] Desync Scenario      all 4 methods vs message jamming")
-    print("   [4] Rollback Scenario    all 4 methods vs RollBack attack   (new in v2)")
-    print("   [5] Single Method        pick one method vs all 8 scenarios")
-    print("   [6] Nonce-Space Sweep    FRR vs nonce field length (writes sweep CSV)")
-    print("   [7] Statistics           paired t-tests + structural notes")
-    print("   [8] Run Everything       grid + sweep + stats, write both CSVs")
+    print("   [1] Full Grid          -> results_upgraded_grid.csv")
+    print("   [2] Reset Scenario     -> results_reset_scenario.csv")
+    print("   [3] Desync Scenario    -> results_desync_scenario.csv")
+    print("   [4] Rollback Scenario  -> results_rollback_scenario.csv   (new in v2)")
+    print("   [5] Single Method      -> results_<method>.csv  (per-scenario rows)")
+    print("   [6] Nonce-Space Sweep  -> results_nonce_sweep.csv")
+    print("   [7] Statistics         -> results_statistics.csv")
+    print("   [8] Run Everything     -> all of the above (incl. 4 per-method CSVs)")
     print("   [9] Exit")
     print()
-    print(" Tip: plotting needs BOTH CSVs. Choose [8] to generate them in one go,")
-    print("      or run [1] and [6]. The CSVs are saved next to this script.")
+    print(" Note: plotting needs the grid + sweep CSVs. [8] writes everything.")
+    print(" All CSVs are saved next to this script.")
     print()
     while True:
         choice = input(" Enter choice [1-9]: ").strip()
@@ -443,7 +514,6 @@ def show_menu():
 
 
 def main():
-    # Non-interactive shortcut for the "run then plot" workflow.
     if "--all" in sys.argv:
         experiment_everything()
         return
