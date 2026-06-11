@@ -39,13 +39,16 @@ and replay messages.
 python3 main_final.py
 ```
 
-This launches an interactive menu with four experiment options:
+This launches an interactive menu. The main options are:
 
-1. **Full Grid Experiment** — Runs all 4 methods against all 5 standard
-   scenarios (20 experiments total).
+1. **Full Grid Experiment** — Runs all 4 methods against every scenario.
 2. **Reset Scenario** — Tests all 4 methods against ECU power loss.
 3. **Desync Scenario** — Tests all 4 methods against message jamming.
-4. **Single Method** — Tests one chosen method against all 7 scenarios.
+4. **Rollback Scenario** — Tests all 4 methods against a counter-rollback attack.
+5. **Single Method** — Tests one chosen method against all scenarios.
+6. **Nonce-Field Sweep** — Measures the False Rejection Rate as the nonce length increases from 6 to 16 bits.
+7. **Statistics** — Runs the paired statistical comparisons between methods.
+8. **Run Everything** — Runs all of the above and exports every CSV.
 
 Each option saves results to a CSV file in the current directory.
 
@@ -116,7 +119,7 @@ Each option saves results to a CSV file in the current directory.
 |----|--------|-----------|
 | 1 | No Validation | Accepts every message. Baseline control case. |
 | 2 | Nonce-Only | Rejects if the nonce has been seen before. |
-| 3 | Counter-Only | Rejects if the counter is not greater than the last accepted. |
+| 3 | Counter-Only | Accepts only if the counter is within a forward window above the last accepted (rejects stale or far-ahead counters). |
 | 4 | Hybrid | Requires both nonce uniqueness AND counter increment. |
 
 ## The Scenarios
@@ -156,23 +159,28 @@ Everything runs as plain Python objects in one program, so we get exact control 
 |----------|-------------|
 | `reset_attack` | Simulates ECU power loss. The nonce list (RAM) is cleared; the last counter (EEPROM) is preserved. Attacker then replays all captured messages. |
 | `desync_attack` | Attacker jams one message in transit. The ECU never sees that nonce or counter value. Attacker later replays the jammed message. |
+| `counter_rollback` | Simulates a rollback attack (such as RollBack from the literature). The counter is forced backwards while the nonce list is preserved. Attacker then replays all captured messages. |
 
 ## Experimental Design
 
 - Each experiment cell is **isolated**: fresh KeyFob, CarECU, and Attacker for every run.
-- Each cell is repeated `NUM_TRIALS` times (default 30) and averaged.
+- Each cell is repeated `NUM_TRIALS` times (default **1000**) and averaged.
+- Trials are **paired**: in each trial the same seeded message stream is given to all four methods, so any difference comes from the method and not from luck.
+- Results are reported as averages with **95% confidence intervals**.
 
 
 ---
 
 ## How performance is measured
 
-Three metrics:
+Four metrics:
 
 - **Detection Rate (DR)** = % of attacks caught. *Higher is better.*
   `DR = (attacks rejected / total attacks) × 100`
 - **Attack Success Rate (ASR)** = % of attacks that got through. *Lower is better.*
   `ASR = 100 − DR`
+- **False Rejection Rate (FRR)** = % of *genuine* messages wrongly rejected. *Lower is better.* This happens when two genuine messages pick the same short nonce by chance.
+  `FRR = (genuine messages rejected / total genuine messages) × 100`
 - **Latency** = time to validate one message, in microseconds (millionths of a second). *Lower is better.* Measured with Python's high-resolution `time.perf_counter()`.
 
 ---
@@ -190,16 +198,20 @@ all replays of previously-captured messages, achieving 100% detection rate.
 | Counter-Only | 0% ASR |
 | Hybrid | 0% ASR |
 
+With the realistic short nonce, Nonce-Only and Hybrid also wrongly reject about
+1.96% of genuine messages (their False Rejection Rate) at an 8-bit nonce, while
+Counter-Only and No Validation have 0% FRR.
+
 ### Robustness Scenarios
 
 The two robustness scenarios reveal differences between the methods:
 
-| Method | Reset Scenario | Desync Scenario |
-|--------|---------------|-----------------|
-| No Validation | 100% ASR | 100% ASR |
-| Nonce-Only | 100% ASR (fails) | 100% ASR (fails) |
-| Counter-Only | 0% ASR | 0% ASR |
-| Hybrid | 0% ASR | 0% ASR |
+| Method | Reset | Desync | Rollback |
+|--------|-------|--------|----------|
+| No Validation | 100% ASR | 100% ASR | 100% ASR |
+| Nonce-Only | 98% ASR (fails) | 97% ASR (fails) | 0% ASR |
+| Counter-Only | 0% ASR | 0% ASR | 100% ASR (fails) |
+| Hybrid | 0% ASR | 0% ASR | 0% ASR |
 
 **Reset scenario:** Nonce-Only fails because the nonce list is cleared on
 power loss, allowing all captured messages to be replayed successfully.
@@ -211,6 +223,11 @@ recorded in the ECU's nonce list. To Nonce-Only, the replayed message
 appears fresh. Counter-Only and Hybrid catch it because the counter value
 is lower than the ECU's current state.
 
+**Rollback scenario:** Counter-Only fails because the counter is forced
+backwards, so old captured messages look fresh again and are accepted.
+Nonce-Only and Hybrid survive because the nonce list still recognises the
+replayed messages.
+
 ### Latency
 
 Validation overhead is small in all methods. Hybrid is the slowest because
@@ -219,51 +236,52 @@ microsecond on typical hardware.
 
 ## Results — and the verdict
 
-Below is real output from running the simulation (4 methods × 7 scenarios, 30 trials each, seed 42). Latency is in microseconds (µs); exact values depend on the machine, but the **pattern** is what matters.
+Below is real output from running the simulation (4 methods × 7 attack scenarios, 1000 trials each, seed 42). Latency is in microseconds (µs); exact values depend on the machine, but the **pattern** is what matters.
 
 ### Attack Success Rate — the key table (lower = better; 0% means every attack was stopped)
 
-| Method | delayed | multiple | out_of_order | counter_skip | **reset** | **desync** |
-|--------|:-------:|:--------:|:------------:|:------------:|:---------:|:----------:|
-| No Validation | 100% | 100% | 100% | 100% | 100% | 100% |
-| **Nonce-Only** | 0% | 0% | 0% | 0% | **100% ❌** | **100% ❌** |
-| Counter-Only | 0% | 0% | 0% | 0% | 0% ✅ | 0% ✅ |
-| **Hybrid** | 0% | 0% | 0% | 0% | **0% ✅** | **0% ✅** |
+| Method | delayed | multiple | out_of_order | counter_skip | **reset** | **desync** | **rollback** |
+|--------|:-------:|:--------:|:------------:|:------------:|:---------:|:----------:|:------------:|
+| No Validation | 100% | 100% | 100% | 100% | 100% | 100% | 100% |
+| **Nonce-Only** | 0% | 0% | 0% | 0% | **98% ❌** | **97% ❌** | 0% ✅ |
+| **Counter-Only** | 0% | 0% | 0% | 0% | 0% ✅ | 0% ✅ | **100% ❌** |
+| **Hybrid** | 0% | 0% | 0% | 0% | **0% ✅** | **0% ✅** | **0% ✅** |
 
 ### What this shows
 
-On the **five standard attacks**, all three protected methods score a perfect 0% ASR — they look identical. The story only appears in the **last two columns**:
+On the **four standard attacks**, all three protected methods score a perfect 0% ASR — they look identical. The story only appears in the **last three columns**:
 
-- **Nonce-Only FAILS** both the reset and desync scenarios. After a power loss its memory is wiped, and a jammed message was never recorded — so in both cases old messages look new and get accepted. **100% of those attacks succeed.**
-- **Counter-Only and Hybrid HOLD.** The counter survives power loss (it lives in EEPROM) and always moves forward, so replayed old messages are rejected every time.
+- **Nonce-Only FAILS** the reset and desync scenarios. After a power loss its memory is wiped, and a jammed message was never recorded — so in both cases old messages look new and get accepted.
+- **Counter-Only FAILS** the rollback scenario. When the counter is forced backwards, old captured messages look fresh again and are accepted.
+- **Only the Hybrid HOLDS everywhere.** A reset or desync is caught by the surviving counter, and a rollback is caught by the surviving nonce memory — the two checks cover each other's blind spots.
 
 ### Latency cost (average µs per message; lower = better)
 
 | Method | Typical latency | Overhead vs baseline |
 |--------|:---------------:|:--------------------:|
-| No Validation | ~0.19 µs | — (baseline) |
-| Counter-Only | ~0.26 µs | ~0.07 µs |
-| Nonce-Only | ~0.32 µs | ~0.13 µs |
-| Hybrid | ~0.37 µs | ~0.18 µs |
+| No Validation | ~0.20 µs | — (baseline) |
+| Nonce-Only | ~0.31 µs | ~0.11 µs |
+| Counter-Only | ~0.33 µs | ~0.13 µs |
+| Hybrid | ~0.44 µs | ~0.24 µs |
 
-The Hybrid is the slowest, but the difference is about **0.18 millionths of a second** per message. For comparison, a car door physically unlocking takes about 100 milliseconds — roughly **half a million times slower**. The security cost is invisible in practice.
+The Hybrid is the slowest, but the difference is about **0.24 millionths of a second** per message. For comparison, a car door physically unlocking takes about 100 milliseconds — roughly **two hundred thousand times slower**. The security cost is invisible in practice.
 
 ### The verdict
 
 **The Hybrid method is the recommended choice.**
 
-1. **It is never worse** than the best individual method in any scenario tested.
-2. **It survives the realistic failure modes** (reset and desync) that defeat Nonce-Only.
-3. **It is defence-in-depth.** An attacker has to beat *two* independent checks. Attacks that target the counter (such as rollback attacks in the literature) are still caught by the nonce check, and attacks that target the nonce memory are still caught by the counter.
-4. **The extra cost is negligible** — well under a microsecond per message.
+1. **It is strictly the strongest.** It is the only method that stops every attack scenario tested.
+2. **It survives the realistic failure modes that defeat the single methods** — a reset or desync (which defeat Nonce-Only) and a rollback (which defeats Counter-Only).
+3. **It is defence-in-depth.** An attacker has to beat *two* independent checks: attacks that target the counter (such as rollback) are still caught by the nonce, and attacks that target the nonce memory are still caught by the counter.
+4. **The extra cost is small and measurable** — a false-rejection rate of about 1.96% at an 8-bit nonce (which shrinks to near zero with a longer nonce), plus the highest latency of the methods, still well under a microsecond.
 
-Counter-Only ties with Hybrid in these specific tests, because no tested scenario defeats the counter. But Counter-Only is one new attack (e.g. a counter-rollback exploit) or one implementation bug away from failure, whereas the Hybrid keeps a backup check at almost no cost. **For a real safety-critical system, the Hybrid's redundancy is worth its tiny overhead.**
+Unlike the earlier version of this project, Counter-Only no longer ties with the Hybrid: the rollback scenario defeats it. This makes the case for the Hybrid clearer — it is the only single design with no fatal scenario, and it pays only a small, tunable cost for that robustness.
 
 ---
 
 ## Generating the result graphs
 
-After running the experiments and producing the CSV files, generate the four report figures:
+After running the experiments and producing the CSV files, generate the five report figures:
 
 ```bash
 pip install matplotlib numpy    # one-time setup
@@ -274,10 +292,11 @@ This reads the CSV files in the current directory and outputs:
 
 | Output file | What it shows |
 |-------------|---------------|
-| `fig1_asr_all.png` | Attack Success Rate across all 6 scenarios (standard + robustness) |
-| `fig2_asr_robustness.png` | ASR under reset and desync only (the key finding) |
-| `fig3_capability_DR.png` | Security capability summary (scenarios defended at 100% Detection Rate) |
-| `fig4_latency.png` | Mean validation latency per method with baseline overhead |
+| `fig1_asr_all_v2.png` | Attack Success Rate across all seven attack scenarios |
+| `fig2_frr_vs_nonce.png` | False Rejection Rate as the nonce field length increases |
+| `fig3_frr_by_method.png` | False Rejection Rate by method (Counter-Only is structurally zero) |
+| `fig4_latency_v2.png` | Mean validation latency per method |
+| `fig5_capability_v2.png` | Security capability (attack scenarios neutralised out of seven) |
 
 
 ## Limitations
@@ -293,6 +312,12 @@ This reads the CSV files in the current directory and outputs:
   on constrained hardware. Relative comparisons between methods remain
   meaningful, but absolute values are not representative of microcontroller
   performance.
+- The methods stop replays of *previously seen* messages, but not the
+  **RollJam** attack, where an attacker jams and stores a genuine message and
+  replays it later. That replayed message is genuinely fresh (new nonce,
+  forward counter), so it defeats all four methods including the Hybrid.
+  Defeating RollJam needs a two-way challenge-response exchange, which is
+  identified as future work.
 
 ## Project structure
 

@@ -462,7 +462,7 @@ def experiment_everything():
         cells = {mname: grid[(mname, sc)] for mid, mname in METHODS}
         write_scenario_csv(sc, cells)
 
-    # individual per-method CSVs (Azam's individual method results)
+    # individual per-method CSVs (Individual method results)
     for mid, mname in METHODS:
         cells = {sc: grid[(mname, sc)] for sc in SCENARIOS}
         write_method_csv(mname, cells)
